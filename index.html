@@ -9,23 +9,6 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
-    <!-- 클라우드 저장을 위한 Firebase 연동 -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'math-racing-game';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        
-        if (firebaseConfig) {
-            const app = initializeApp(firebaseConfig);
-            const db = getFirestore(app);
-            const auth = getAuth(app);
-            window.firebaseApp = { app, db, auth, appId, signInAnonymously, signInWithCustomToken, doc, getDoc, setDoc };
-        }
-    </script>
 
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
     
@@ -364,59 +347,33 @@
             const [editLevelValue, setEditLevelValue] = useState("");
             const clickTimeout = useRef(null);
 
-            // 클라우드 데이터 로드
+            // 로컬스토리지에서 세이브 데이터 불러오기
             useEffect(() => {
-                const initSaveData = async () => {
-                    let retries = 10;
-                    while (!window.firebaseApp && retries > 0) {
-                        await new Promise(r => setTimeout(r, 200));
-                        retries--;
+                try {
+                    const savedData = localStorage.getItem('math-racing-game-save');
+                    if (savedData) {
+                        const data = JSON.parse(savedData);
+                        if (data.level) setLevel(data.level);
+                        if (data.totalExp) setTotalExp(data.totalExp);
+                        if (data.parts) setParts(data.parts);
+                        if (data.upgradePoints !== undefined) setUpgradePoints(data.upgradePoints);
                     }
-                    if (!window.firebaseApp) return;
-
-                    const { auth, db, appId, signInAnonymously, signInWithCustomToken, doc, getDoc } = window.firebaseApp;
-                    try {
-                        let user = auth.currentUser;
-                        if (!user) {
-                            if (typeof __initial_auth_token !== 'undefined') {
-                                const credential = await signInWithCustomToken(auth, __initial_auth_token);
-                                user = credential.user;
-                            } else {
-                                const credential = await signInAnonymously(auth);
-                                user = credential.user;
-                            }
-                        }
-                        
-                        const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'gameData', 'progress');
-                        const docSnap = await getDoc(docRef);
-                        
-                        if (docSnap.exists()) {
-                            const data = docSnap.data();
-                            if (data.level) setLevel(data.level);
-                            if (data.totalExp) setTotalExp(data.totalExp);
-                            if (data.parts) setParts(data.parts);
-                            if (data.upgradePoints !== undefined) setUpgradePoints(data.upgradePoints);
-                        }
-                    } catch (error) {
-                        console.error("데이터 로드 에러:", error);
-                    }
-                };
-                initSaveData();
+                } catch (error) {
+                    console.error("데이터 로드 에러:", error);
+                }
             }, []);
 
-            // 저장 헬퍼 함수
-            const saveProgress = async (newLevel, newExp, newParts, newPoints) => {
-                if (!window.firebaseApp || !window.firebaseApp.auth.currentUser) return;
-                const { db, appId, doc, setDoc, auth } = window.firebaseApp;
+            // 로컬스토리지 저장 헬퍼 함수
+            const saveProgress = (newLevel, newExp, newParts, newPoints) => {
                 try {
-                    const docRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'gameData', 'progress');
-                    await setDoc(docRef, {
+                    const dataToSave = {
                         level: newLevel,
                         totalExp: newExp,
                         parts: newParts,
                         upgradePoints: newPoints,
                         updatedAt: new Date().toISOString()
-                    }, { merge: true });
+                    };
+                    localStorage.setItem('math-racing-game-save', JSON.stringify(dataToSave));
                 } catch (error) {
                     console.error("진행상황 저장 에러:", error);
                 }
