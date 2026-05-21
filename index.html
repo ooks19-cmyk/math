@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카레이싱 산수 게임</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- 클라우드 저장을 위한 Firebase 연동 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'math-racing-game';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        
+        if (firebaseConfig) {
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const auth = getAuth(app);
+            window.firebaseApp = { app, db, auth, appId, signInAnonymously, signInWithCustomToken, doc, getDoc, setDoc };
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Jua', sans-serif;
+            background-color: #f0fdf4; /* Light green background */
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation;
+        }
+        
+        .problem-card {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .problem-card.solved {
+            background-color: #dcfce7; /* Green for solved */
+            border: 2px solid #22c55e;
+            transform: scale(1.02);
+        }
+
+        .input-box {
+            font-family: 'Jua', sans-serif;
+            appearance: none;
+            -moz-appearance: textfield;
+        }
+        .input-box::-webkit-outer-spin-button,
+        .input-box::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Float animation for the car */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // 문제 생성 유틸리티 함수
+        const generateProblem = () => {
+            const type = Math.floor(Math.random() * 3) + 1;
+            
+            if (type === 1) {
+                // 1. 받아내림이 있는 두자리 숫자 뺄셈
+                let a, b;
+                do {
+                    a = Math.floor(Math.random() * 70) + 20; // 20 ~ 89
+                    b = Math.floor(Math.random() * 8) + 2;   // 2 ~ 9
+                } while (a % 10 >= b); // 일의 자리 숫자가 빼는 수보다 작아야 받아내림 발생
+                
+                return {
+                    id: Math.random().toString(36).substr(2, 9),
+                    type: 1,
+                    numbers: [a, b],
+                    ops: ['-'],
+                    answer: a - b
+                };
+            } else if (type === 2) {
+                // 2. 받아올림이 있는 두자리 + 한자리 숫자 덧셈
+                let a, b;
+                do {
+                    a = Math.floor(Math.random() * 70) + 11; // 11 ~ 80
+                    b = Math.floor(Math.random() * 8) + 2;   // 2 ~ 9
+                } while ((a % 10) + b < 10); // 일의 자리 합이 10 이상이어야 받아올림 발생
+
+                return {
+                    id: Math.random().toString(36).substr(2, 9),
+                    type: 2,
+                    numbers: [a, b],
+                    ops: ['+'],
+                    answer: a + b
+                };
+            } else {
+                // 3. 세 수의 연산 (덧셈/뺄셈 섞임)
+                let a, b, c, op1, op2, ans;
+                do {
+                    a = Math.floor(Math.random() * 11) + 10; // 10 ~ 20
+                    b = Math.floor(Math.random() * 9) + 1;   // 1 ~ 9
+                    c = Math.floor(Math.random() * 9) + 1;   // 1 ~ 9
+                    op1 = Math.random() > 0.5 ? '+' : '-';
+                    op2 = Math.random() > 0.5 ? '+' : '-';
+                    
+                    let temp = op1 === '+' ? a + b : a - b;
+                    ans = op2 === '+' ? temp + c : temp - c;
+                } while ((op1 === '-' && a - b < 0) || ans < 0 || ans > 40); // 중간 계산과 결과가 음수가 되지 않도록 설정
+
+                return {
+                    id: Math.random().toString(36).substr(2, 9),
+                    type: 3,
+                    numbers: [a, b, c],
+                    ops: [op1, op2],
+                    answer: ans
+                };
+            }
+        };
+
+        // 레벨에 따른 레이서 및 자동차 SVG 컴포넌트
+        const RacerAvatar = ({ level }) => {
+            const visualLevel = Math.min(level, 4); // 외형은 4단계까지만
+            
+            // 1단계: 초보 꼬마 레이서
+            if (visualLevel === 1) {
+                return (
+                    <svg viewBox="0 0 100 100" className="w-24 h-24 sm:w-32 sm:h-32 drop-shadow-md">
+                        {/* Body */}
+                        <rect x="35" y="50" width="30" height="40" rx="5" fill="#fcd34d" />
+                        <rect x="35" y="50" width="30" height="40" rx="5" fill="#f59e0b" clipPath="inset(50% 0 0 0)" />
+                        {/* Head */}
+                        <circle cx="50" cy="35" r="20" fill="#fde047" />
+                        {/* Cap */}
+                        <path d="M 25 25 Q 50 10 75 25 L 85 25 L 85 30 L 25 30 Z" fill="#ef4444" />
+                        {/* Face */}
+                        <circle cx="43" cy="35" r="2" fill="#1e293b" />
+                        <circle cx="57" cy="35" r="2" fill="#1e293b" />
+                        <path d="M 45 42 Q 50 47 55 42" stroke="#1e293b" strokeWidth="2" fill="none" />
+                    </svg>
+                );
+            }
+            // 2단계: 아마추어 레이서 (기본 헬멧)
+            if (visualLevel === 2) {
+                return (
+                    <svg viewBox="0 0 100 100" className="w-24 h-24 sm:w-32 sm:h-32 drop-shadow-lg">
+                        {/* Body */}
+                        <path d="M30 90 L35 50 L65 50 L70 90 Z" fill="#ef4444" />
+                        <path d="M45 50 L55 50 L55 90 L45 90 Z" fill="#ffffff" /> {/* Stripe */}
+                        {/* Helmet */}
+                        <circle cx="50" cy="35" r="22" fill="#e2e8f0" />
+                        <rect x="35" y="25" width="30" height="15" rx="5" fill="#1e293b" /> {/* Visor */}
+                        <circle cx="50" cy="35" r="22" fill="none" stroke="#ef4444" strokeWidth="3" />
+                    </svg>
+                );
+            }
+            // 3단계: 프로 레이서 (풀페이스 헬멧 & 멋진 슈트)
+            if (visualLevel === 3) {
+                return (
+                    <svg viewBox="0 0 100 100" className="w-24 h-24 sm:w-32 sm:h-32 drop-shadow-xl">
+                        {/* Body */}
+                        <path d="M25 90 C30 60 30 50 35 45 L65 45 C70 50 70 60 75 90 Z" fill="#1d4ed8" />
+                        <path d="M35 45 L45 90 L55 90 L65 45 Z" fill="#fbbf24" />
+                        {/* Helmet */}
+                        <circle cx="50" cy="35" r="24" fill="#1e3a8a" />
+                        <path d="M 30 35 C 30 20 70 20 70 35 L 65 45 L 35 45 Z" fill="#fbbf24" />
+                        <rect x="35" y="28" width="30" height="12" rx="4" fill="#0f172a" /> {/* Shiny Visor */}
+                        <rect x="38" y="30" width="8" height="3" rx="1" fill="#cbd5e1" opacity="0.6" /> {/* Reflection */}
+                    </svg>
+                );
+            }
+            // 4단계: 레전드 레이서 (사이버펑크 네온)
+            return (
+                <svg viewBox="0 0 100 100" className="w-24 h-24 sm:w-32 sm:h-32 drop-shadow-2xl">
+                    {/* Glow Effect */}
+                    <circle cx="50" cy="50" r="45" fill="#0ea5e9" opacity="0.2" filter="blur(10px)" />
+                    {/* Body */}
+                    <path d="M25 90 L35 45 L65 45 L75 90 Z" fill="#0f172a" stroke="#0ea5e9" strokeWidth="2" />
+                    <path d="M40 45 L50 70 L60 45 Z" fill="#0ea5e9" opacity="0.8" />
+                    {/* Helmet */}
+                    <path d="M25 35 C25 15 75 15 75 35 L70 50 L30 50 Z" fill="#0f172a" stroke="#0ea5e9" strokeWidth="2" />
+                    <path d="M30 35 C30 25 70 25 70 35 L65 45 L35 45 Z" fill="#38bdf8" opacity="0.9" /> {/* Neon Visor */}
+                    <rect x="35" y="30" width="30" height="5" fill="#f0f9ff" opacity="0.8" />
+                </svg>
+            );
+        };
+
+        const CarAvatar = ({ level }) => {
+            const visualLevel = Math.min(level, 4);
+            
+            // 1단계: 나무 카트
+            if (visualLevel === 1) {
+                return (
+                    <svg viewBox="0 0 200 100" className="w-48 sm:w-64 animate-float drop-shadow-md">
+                        <rect x="20" y="50" width="160" height="30" rx="5" fill="#b45309" />
+                        <rect x="20" y="50" width="160" height="10" fill="#92400e" />
+                        <rect x="40" y="30" width="40" height="20" fill="#b45309" />
+                        {/* Wheels */}
+                        <circle cx="50" cy="80" r="15" fill="#1e293b" />
+                        <circle cx="50" cy="80" r="5" fill="#94a3b8" />
+                        <circle cx="150" cy="80" r="15" fill="#1e293b" />
+                        <circle cx="150" cy="80" r="5" fill="#94a3b8" />
+                    </svg>
+                );
+            }
+            // 2단계: 스포츠카
+            if (visualLevel === 2) {
+                return (
+                    <svg viewBox="0 0 200 100" className="w-48 sm:w-64 animate-float drop-shadow-lg">
+                        <path d="M20 70 L25 45 C30 30 50 30 70 30 L110 30 C140 30 160 45 170 55 L180 70 Z" fill="#ef4444" />
+                        <path d="M60 32 L100 32 C115 32 125 40 130 45 L60 45 Z" fill="#94a3b8" opacity="0.6" /> {/* Window */}
+                        {/* Wheels */}
+                        <circle cx="55" cy="70" r="18" fill="#0f172a" />
+                        <circle cx="55" cy="70" r="8" fill="#cbd5e1" />
+                        <circle cx="145" cy="70" r="18" fill="#0f172a" />
+                        <circle cx="145" cy="70" r="8" fill="#cbd5e1" />
+                    </svg>
+                );
+            }
+            // 3단계: 포뮬러 원 (F1)
+            if (visualLevel === 3) {
+                return (
+                    <svg viewBox="0 0 200 100" className="w-48 sm:w-64 animate-float drop-shadow-xl">
+                        {/* Spoiler */}
+                        <rect x="150" y="20" width="30" height="10" rx="2" fill="#1e3a8a" />
+                        <rect x="160" y="30" width="10" height="20" fill="#1e3a8a" />
+                        {/* Body */}
+                        <path d="M10 65 L40 50 L110 40 L160 50 L180 65 Z" fill="#1d4ed8" />
+                        <path d="M40 50 L110 40 L110 45 L40 55 Z" fill="#fbbf24" /> {/* Decal */}
+                        {/* Driver cockpit */}
+                        <path d="M80 42 C80 30 110 30 110 42 Z" fill="#0f172a" />
+                        {/* Wheels (Big) */}
+                        <rect x="20" y="55" width="30" height="30" rx="10" fill="#0f172a" />
+                        <circle cx="35" cy="70" r="5" fill="#ef4444" />
+                        <rect x="140" y="45" width="40" height="40" rx="10" fill="#0f172a" />
+                        <circle cx="160" cy="65" r="7" fill="#ef4444" />
+                    </svg>
+                );
+            }
+            // 4단계: 미래형 사이버카
+            return (
+                <svg viewBox="0 0 200 100" className="w-48 sm:w-64 animate-float drop-shadow-2xl">
+                    {/* Glow under car */}
+                    <ellipse cx="100" cy="85" rx="80" ry="10" fill="#0ea5e9" opacity="0.4" filter="blur(5px)" />
+                    {/* Body */}
+                    <path d="M15 65 L45 35 L120 35 L185 65 Z" fill="#0f172a" />
+                    <path d="M15 65 L45 35 L120 35 L185 65 Z" fill="none" stroke="#0ea5e9" strokeWidth="3" />
+                    {/* Window */}
+                    <path d="M55 40 L110 40 L130 55 L45 55 Z" fill="#38bdf8" opacity="0.6" />
+                    {/* Neon Wheels / Hover pads */}
+                    <ellipse cx="50" cy="70" rx="20" ry="8" fill="#0f172a" stroke="#0ea5e9" strokeWidth="2" />
+                    <ellipse cx="50" cy="70" rx="10" ry="4" fill="#38bdf8" />
+                    <ellipse cx="150" cy="70" rx="20" ry="8" fill="#0f172a" stroke="#0ea5e9" strokeWidth="2" />
+                    <ellipse cx="150" cy="70" rx="10" ry="4" fill="#38bdf8" />
+                </svg>
+            );
+        };
+
+        const MathProblem = ({ problem, onSolve }) => {
+            const [inputValue, setInputValue] = useState('');
+            const [isSolved, setIsSolved] = useState(false);
+            const inputRef = useRef(null);
+
+            useEffect(() => {
+                // 새로운 문제 뱃치가 오면 초기화
+                setInputValue('');
+                setIsSolved(false);
+            }, [problem.id]);
+
+            const handleChange = (e) => {
+                if (isSolved) return; // 이미 풀었으면 입력 방지
+                
+                const val = e.target.value;
+                setInputValue(val);
+
+                if (parseInt(val) === problem.answer) {
+                    setIsSolved(true);
+                    onSolve();
+                    
+                    // 정답 시 축하 효과
+                    const rect = inputRef.current.getBoundingClientRect();
+                    const x = (rect.left + rect.width / 2) / window.innerWidth;
+                    const y = (rect.top + rect.height / 2) / window.innerHeight;
+                    
+                    confetti({
+                        particleCount: 50,
+                        spread: 60,
+                        origin: { x, y },
+                        colors: ['#22c55e', '#fbbf24', '#3b82f6', '#ef4444']
+                    });
+                }
+            };
+
+            return (
+                <div className={`problem-card bg-white p-6 rounded-2xl flex flex-col items-end w-48 sm:w-56 ${isSolved ? 'solved' : ''}`}>
+                    <div className="text-4xl font-bold tracking-widest flex flex-col items-end space-y-2 text-slate-700 w-full pr-2">
+                        {problem.type !== 3 ? (
+                            <>
+                                <div>{problem.numbers[0]}</div>
+                                <div className="flex w-full justify-between">
+                                    <span className="text-red-500">{problem.ops[0]}</span>
+                                    <span>{problem.numbers[1]}</span>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div>{problem.numbers[0]}</div>
+                                <div className="flex w-full justify-between">
+                                    <span className="text-red-500">{problem.ops[0]}</span>
+                                    <span>{problem.numbers[1]}</span>
+                                </div>
+                                <div className="flex w-full justify-between">
+                                    <span className="text-blue-500">{problem.ops[1]}</span>
+                                    <span>{problem.numbers[2]}</span>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                    <hr className="w-full border-slate-800 border-2 my-3 rounded-full" />
+                    <input
+                        ref={inputRef}
+                        type="number"
+                        value={inputValue}
+                        onChange={handleChange}
+                        disabled={isSolved}
+                        className={`input-box w-24 h-12 text-3xl font-bold text-right px-2 border-4 rounded-xl focus:outline-none transition-colors
+                            ${isSolved ? 'bg-transparent border-green-500 text-green-700' : 'bg-slate-100 border-slate-300 focus:border-blue-400 focus:bg-white text-slate-800'}`}
+                        placeholder="?"
+                    />
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [level, setLevel] = useState(1);
+            const [problems, setProblems] = useState([]);
+            const [solvedCount, setSolvedCount] = useState(0); // 현재 라운드에서 푼 문제 수
+            const [totalExp, setTotalExp] = useState(0); // 총 경험치
+            const [showNextStage, setShowNextStage] = useState(false);
+
+            // 신규 상태: 부품, 업그레이드 포인트
+            const [parts, setParts] = useState({ engine: 0, mission: 0, tire: 0, brake: 0 });
+            const [upgradePoints, setUpgradePoints] = useState(0);
+
+            const [levelClickCount, setLevelClickCount] = useState(0);
+            const [isEditingLevel, setIsEditingLevel] = useState(false);
+            const [editLevelValue, setEditLevelValue] = useState("");
+            const clickTimeout = useRef(null);
+
+            // 클라우드 데이터 로드
+            useEffect(() => {
+                const initSaveData = async () => {
+                    let retries = 10;
+                    while (!window.firebaseApp && retries > 0) {
+                        await new Promise(r => setTimeout(r, 200));
+                        retries--;
+                    }
+                    if (!window.firebaseApp) return;
+
+                    const { auth, db, appId, signInAnonymously, signInWithCustomToken, doc, getDoc } = window.firebaseApp;
+                    try {
+                        let user = auth.currentUser;
+                        if (!user) {
+                            if (typeof __initial_auth_token !== 'undefined') {
+                                const credential = await signInWithCustomToken(auth, __initial_auth_token);
+                                user = credential.user;
+                            } else {
+                                const credential = await signInAnonymously(auth);
+                                user = credential.user;
+                            }
+                        }
+                        
+                        const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'gameData', 'progress');
+                        const docSnap = await getDoc(docRef);
+                        
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            if (data.level) setLevel(data.level);
+                            if (data.totalExp) setTotalExp(data.totalExp);
+                            if (data.parts) setParts(data.parts);
+                            if (data.upgradePoints !== undefined) setUpgradePoints(data.upgradePoints);
+                        }
+                    } catch (error) {
+                        console.error("데이터 로드 에러:", error);
+                    }
+                };
+                initSaveData();
+            }, []);
+
+            // 저장 헬퍼 함수
+            const saveProgress = async (newLevel, newExp, newParts, newPoints) => {
+                if (!window.firebaseApp || !window.firebaseApp.auth.currentUser) return;
+                const { db, appId, doc, setDoc, auth } = window.firebaseApp;
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'gameData', 'progress');
+                    await setDoc(docRef, {
+                        level: newLevel,
+                        totalExp: newExp,
+                        parts: newParts,
+                        upgradePoints: newPoints,
+                        updatedAt: new Date().toISOString()
+                    }, { merge: true });
+                } catch (error) {
+                    console.error("진행상황 저장 에러:", error);
+                }
+            };
+
+            const handleLevelTitleClick = () => {
+                if (clickTimeout.current) clearTimeout(clickTimeout.current);
+                
+                const newCount = levelClickCount + 1;
+                if (newCount >= 5) {
+                    setIsEditingLevel(true);
+                    setEditLevelValue(level.toString());
+                    setLevelClickCount(0);
+                } else {
+                    setLevelClickCount(newCount);
+                    // 1초 안에 다시 누르지 않으면 카운트 초기화
+                    clickTimeout.current = setTimeout(() => {
+                        setLevelClickCount(0);
+                    }, 1000);
+                }
+            };
+
+            const handleLevelEditComplete = (e) => {
+                if (e.key === 'Enter' || e.type === 'blur') {
+                    const newLevel = parseInt(editLevelValue, 10);
+                    if (!isNaN(newLevel) && newLevel > 0) {
+                        setLevel(newLevel);
+                        
+                        // 에디트로 레벨업 시 포인트 보상
+                        let newPoints = upgradePoints;
+                        if (newLevel > level && newLevel >= 5) {
+                            // 레벨 5부터 보상 제공
+                            const rewardLevels = newLevel - Math.max(level, 4);
+                            newPoints += rewardLevels;
+                        }
+                        setUpgradePoints(newPoints);
+                        saveProgress(newLevel, totalExp, parts, newPoints);
+                    }
+                    setIsEditingLevel(false);
+                }
+            };
+
+            // 초기 문제 세팅
+            useEffect(() => {
+                generateBatch();
+            }, []);
+
+            const generateBatch = () => {
+                const newProbs = Array.from({ length: 5 }, () => generateProblem());
+                setProblems(newProbs);
+                setSolvedCount(0);
+                setShowNextStage(false);
+            };
+
+            const handleProblemSolved = () => {
+                setSolvedCount(prev => {
+                    const newCount = prev + 1;
+                    if (newCount === 5) {
+                        // 5문제 모두 해결 시 레벨업/경험치 처리
+                        setTimeout(() => {
+                            completeStage();
+                        }, 500);
+                    }
+                    return newCount;
+                });
+            };
+
+            const completeStage = () => {
+                // 스테이지 클리어 대형 축하 파티클
+                const duration = 2000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 5,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: ['#22c55e', '#fbbf24']
+                    });
+                    confetti({
+                        particleCount: 5,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: ['#3b82f6', '#ef4444']
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+
+                setTotalExp(prev => {
+                    const nextExp = prev + 1;
+                    setLevel(prevLevel => {
+                        const nextLevel = prevLevel + 1;
+                        
+                        // 레벨 5 달성부터 업그레이드 포인트 1씩 지급
+                        setUpgradePoints(prevPoints => {
+                            const nextPoints = nextLevel > 4 ? prevPoints + 1 : prevPoints;
+                            saveProgress(nextLevel, nextExp, parts, nextPoints);
+                            return nextPoints;
+                        });
+                        
+                        return nextLevel;
+                    });
+                    return nextExp;
+                });
+                setShowNextStage(true);
+            };
+
+            // 부품 업그레이드 핸들러
+            const handleUpgrade = (partName) => {
+                if (upgradePoints > 0) {
+                    setParts(prev => {
+                        const newParts = { ...prev, [partName]: prev[partName] + 1 };
+                        setUpgradePoints(prevPoints => {
+                            const newPoints = prevPoints - 1;
+                            saveProgress(level, totalExp, newParts, newPoints);
+                            return newPoints;
+                        });
+                        return newParts;
+                    });
+                }
+            };
+
+            // 최고 속도 계산
+            const calculateSpeed = () => {
+                const base = 200;
+                // 각 부품별 기본 증가량
+                const partBonus = (parts.engine * 3) + (parts.mission * 2) + (parts.tire * 2) + (parts.brake * 2);
+                // 세트(균형) 보너스: 모든 부품 중 가장 낮은 레벨 기준 (균형있게 올리면 속도 대폭 증가)
+                const minLevel = Math.min(parts.engine, parts.mission, parts.tire, parts.brake);
+                const balanceBonus = minLevel * 15; 
+                
+                return base + partBonus + balanceBonus;
+            };
+
+            // 게이지 계산 (0 ~ 5)
+            const progressPercent = (solvedCount / 5) * 100;
+
+            return (
+                <div className="max-w-6xl mx-auto p-4 sm:p-8 flex flex-col lg:flex-row gap-8 items-center lg:items-start min-h-screen">
+                    
+                    {/* Left: Math Problems Area */}
+                    <div className="flex-1 w-full bg-white/50 p-6 rounded-3xl shadow-sm border border-slate-200">
+                        <div className="flex justify-between items-center mb-6">
+                            <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 drop-shadow-sm">
+                                🏁 카레이싱 산수 배틀
+                            </h1>
+                            <div className="bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full font-bold text-xl shadow-sm">
+                                목표: 5문제
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap justify-center gap-6">
+                            {problems.map((prob) => (
+                                <MathProblem 
+                                    key={prob.id} 
+                                    problem={prob} 
+                                    onSolve={handleProblemSolved} 
+                                />
+                            ))}
+                        </div>
+
+                        {showNextStage && (
+                            <div className="mt-10 flex flex-col items-center animate-bounce">
+                                <p className="text-2xl text-green-600 font-bold mb-4">최고에요! 레벨 업!</p>
+                                <button 
+                                    onClick={generateBatch}
+                                    className="bg-blue-500 hover:bg-blue-600 text-white text-2xl font-bold py-4 px-10 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95"
+                                >
+                                    다음 라운드 출발! 🚀
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Right: Gamification Area (Avatar & Progress) */}
+                    <div className="w-full lg:w-1/3 bg-slate-800 rounded-3xl p-6 shadow-2xl text-white flex flex-col items-center relative overflow-hidden">
+                        {/* Background Deco */}
+                        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" 
+                             style={{backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '20px 20px'}}></div>
+                        
+                        <div className="z-10 w-full flex flex-col items-center">
+                            <div className="bg-slate-700 w-full rounded-2xl p-4 mb-6 text-center border border-slate-600 shadow-inner">
+                                {isEditingLevel ? (
+                                    <input 
+                                        type="number" 
+                                        value={editLevelValue}
+                                        onChange={(e) => setEditLevelValue(e.target.value)}
+                                        onKeyDown={handleLevelEditComplete}
+                                        onBlur={handleLevelEditComplete}
+                                        className="text-yellow-400 text-2xl font-bold mb-1 w-24 text-center bg-slate-800 border-b-2 border-yellow-400 outline-none rounded-none"
+                                        autoFocus
+                                    />
+                                ) : (
+                                    <h2 
+                                        className="text-yellow-400 text-2xl font-bold mb-1 cursor-pointer select-none transition-transform active:scale-95"
+                                        onClick={handleLevelTitleClick}
+                                        title="5번 연속 클릭하면 레벨을 변경할 수 있습니다!"
+                                    >
+                                        LEVEL {level}
+                                    </h2>
+                                )}
+                                <p className="text-slate-300">경험치를 모아 차를 업그레이드 하세요!</p>
+                            </div>
+
+                            {/* Avatars & Speed */}
+                            <div className={`flex flex-col items-center space-y-2 justify-end relative w-full ${level >= 5 ? 'mb-4 h-48' : 'mb-8 h-64'}`}>
+                                <div className="absolute top-0 right-0 bg-red-500 text-white px-3 py-1 rounded-full font-bold shadow-lg flex items-center gap-1 z-20">
+                                    <span className="animate-pulse">⚡</span> 최고속도 {calculateSpeed()}km/h
+                                </div>
+                                <RacerAvatar level={level} />
+                                <CarAvatar level={level} />
+                            </div>
+
+                            {/* Parts Upgrade Panel (Level 5+) */}
+                            {level >= 5 && (
+                                <div className="w-full bg-slate-900 rounded-xl p-4 mb-4 border-2 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] z-10">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <h3 className="text-blue-400 font-bold text-lg">🔧 튜닝 샵</h3>
+                                        <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-inner">
+                                            포인트: {upgradePoints}
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                        {[
+                                            { id: 'engine', name: '엔진', icon: '🚀' },
+                                            { id: 'mission', name: '미션', icon: '⚙️' },
+                                            { id: 'tire', name: '타이어', icon: '🛞' },
+                                            { id: 'brake', name: '브레이크', icon: '🛑' }
+                                        ].map(part => (
+                                            <div key={part.id} className="bg-slate-800 p-2 rounded flex justify-between items-center border border-slate-700">
+                                                <div className="flex flex-col">
+                                                    <span className="text-slate-300 text-[11px]">{part.icon} {part.name}</span>
+                                                    <span className="text-yellow-400 font-bold text-base">Lv.{parts[part.id]}</span>
+                                                </div>
+                                                <button 
+                                                    onClick={() => handleUpgrade(part.id)}
+                                                    disabled={upgradePoints <= 0}
+                                                    className={`w-8 h-8 rounded-full font-bold flex items-center justify-center transition-all
+                                                        ${upgradePoints > 0 ? 'bg-green-500 hover:bg-green-400 text-white transform hover:scale-110' : 'bg-slate-700 text-slate-500 cursor-not-allowed'}`}
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-2 text-center break-keep">
+                                        💡 모든 부품을 골고루 업그레이드하면 <span className="text-yellow-400 font-bold">세트 효과</span>로 속도가 크게 증가합니다!
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Progress Bar */}
+                            <div className="w-full bg-slate-700 rounded-full h-8 mb-2 p-1 shadow-inner relative overflow-hidden border border-slate-600 mt-auto">
+                                <div 
+                                    className="bg-gradient-to-r from-green-400 to-green-500 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
+                                    style={{ width: `${Math.max(5, progressPercent)}%` }} // 최소 너비 유지
+                                >
+                                    {progressPercent > 0 && <span className="text-xs font-bold text-green-900">BOOST!</span>}
+                                </div>
+                            </div>
+                            <div className="flex justify-between w-full text-slate-400 font-bold px-2">
+                                <span>START</span>
+                                <span>{solvedCount} / 5</span>
+                                <span>LEVEL UP</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
