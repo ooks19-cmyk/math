@@ -185,74 +185,65 @@
             );
         };
 
-        const CarAvatar = ({ level }) => {
-            const visualLevel = Math.min(level, 4);
-            
-            // 1단계: 나무 카트
-            if (visualLevel === 1) {
-                return (
-                    <svg viewBox="0 0 200 100" className="w-48 sm:w-64 animate-float drop-shadow-md">
-                        <rect x="20" y="50" width="160" height="30" rx="5" fill="#b45309" />
-                        <rect x="20" y="50" width="160" height="10" fill="#92400e" />
-                        <rect x="40" y="30" width="40" height="20" fill="#b45309" />
-                        {/* Wheels */}
-                        <circle cx="50" cy="80" r="15" fill="#1e293b" />
-                        <circle cx="50" cy="80" r="5" fill="#94a3b8" />
-                        <circle cx="150" cy="80" r="15" fill="#1e293b" />
-                        <circle cx="150" cy="80" r="5" fill="#94a3b8" />
-                    </svg>
-                );
+        const CAR_DATA = {
+            lv1: {
+                id: 'lv1',
+                name: '초보 연습 차량',
+                image: 'car/lv1.jpg',
+                baseSpeed: 180,
+                baseAccel: 4.5,
+                desc: '레이싱의 기본을 다지기 위한 조그만 연습 차량'
+            },
+            gv70: {
+                id: 'gv70',
+                name: 'GV70',
+                image: 'car/gv70.jpg',
+                baseSpeed: 215,
+                baseAccel: 8.2,
+                desc: '묵직한 가속감과 안정성을 겸비한 럭셔리 SUV'
+            },
+            k5: {
+                id: 'k5',
+                name: 'K5',
+                image: 'car/k5.jpg',
+                baseSpeed: 225,
+                baseAccel: 7.4,
+                desc: '스포티한 주행감과 민첩한 코너링의 스포츠 세단'
+            },
+            ct: {
+                id: 'ct',
+                name: '사이버트럭',
+                image: 'car/ct.jpg',
+                baseSpeed: 250,
+                baseAccel: 9.7,
+                desc: '단단한 장갑과 폭발적인 초반 토크의 미래형 트럭'
+            },
+            my: {
+                id: 'my',
+                name: '모델 Y',
+                image: 'car/my.jpg',
+                baseSpeed: 235,
+                baseAccel: 8.8,
+                desc: '전기차 특유의 부드럽고 균형 잡힌 친환경 SUV'
             }
-            // 2단계: 스포츠카
-            if (visualLevel === 2) {
-                return (
-                    <svg viewBox="0 0 200 100" className="w-48 sm:w-64 animate-float drop-shadow-lg">
-                        <path d="M20 70 L25 45 C30 30 50 30 70 30 L110 30 C140 30 160 45 170 55 L180 70 Z" fill="#ef4444" />
-                        <path d="M60 32 L100 32 C115 32 125 40 130 45 L60 45 Z" fill="#94a3b8" opacity="0.6" /> {/* Window */}
-                        {/* Wheels */}
-                        <circle cx="55" cy="70" r="18" fill="#0f172a" />
-                        <circle cx="55" cy="70" r="8" fill="#cbd5e1" />
-                        <circle cx="145" cy="70" r="18" fill="#0f172a" />
-                        <circle cx="145" cy="70" r="8" fill="#cbd5e1" />
-                    </svg>
-                );
-            }
-            // 3단계: 포뮬러 원 (F1)
-            if (visualLevel === 3) {
-                return (
-                    <svg viewBox="0 0 200 100" className="w-48 sm:w-64 animate-float drop-shadow-xl">
-                        {/* Spoiler */}
-                        <rect x="150" y="20" width="30" height="10" rx="2" fill="#1e3a8a" />
-                        <rect x="160" y="30" width="10" height="20" fill="#1e3a8a" />
-                        {/* Body */}
-                        <path d="M10 65 L40 50 L110 40 L160 50 L180 65 Z" fill="#1d4ed8" />
-                        <path d="M40 50 L110 40 L110 45 L40 55 Z" fill="#fbbf24" /> {/* Decal */}
-                        {/* Driver cockpit */}
-                        <path d="M80 42 C80 30 110 30 110 42 Z" fill="#0f172a" />
-                        {/* Wheels (Big) */}
-                        <rect x="20" y="55" width="30" height="30" rx="10" fill="#0f172a" />
-                        <circle cx="35" cy="70" r="5" fill="#ef4444" />
-                        <rect x="140" y="45" width="40" height="40" rx="10" fill="#0f172a" />
-                        <circle cx="160" cy="65" r="7" fill="#ef4444" />
-                    </svg>
-                );
-            }
-            // 4단계: 미래형 사이버카
+        };
+
+        const CarAvatar = ({ activeCar }) => {
+            const car = CAR_DATA[activeCar] || CAR_DATA.lv1;
             return (
-                <svg viewBox="0 0 200 100" className="w-48 sm:w-64 animate-float drop-shadow-2xl">
-                    {/* Glow under car */}
-                    <ellipse cx="100" cy="85" rx="80" ry="10" fill="#0ea5e9" opacity="0.4" filter="blur(5px)" />
-                    {/* Body */}
-                    <path d="M15 65 L45 35 L120 35 L185 65 Z" fill="#0f172a" />
-                    <path d="M15 65 L45 35 L120 35 L185 65 Z" fill="none" stroke="#0ea5e9" strokeWidth="3" />
-                    {/* Window */}
-                    <path d="M55 40 L110 40 L130 55 L45 55 Z" fill="#38bdf8" opacity="0.6" />
-                    {/* Neon Wheels / Hover pads */}
-                    <ellipse cx="50" cy="70" rx="20" ry="8" fill="#0f172a" stroke="#0ea5e9" strokeWidth="2" />
-                    <ellipse cx="50" cy="70" rx="10" ry="4" fill="#38bdf8" />
-                    <ellipse cx="150" cy="70" rx="20" ry="8" fill="#0f172a" stroke="#0ea5e9" strokeWidth="2" />
-                    <ellipse cx="150" cy="70" rx="10" ry="4" fill="#38bdf8" />
-                </svg>
+                <div className="relative w-48 sm:w-64 animate-float drop-shadow-2xl group flex flex-col items-center">
+                    <div className="relative overflow-hidden rounded-2xl border-4 border-slate-700 shadow-xl bg-slate-900 w-full h-32 sm:h-40">
+                        <img 
+                            src={car.image} 
+                            alt={car.name} 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60"></div>
+                        <div className="absolute bottom-2 left-3 right-3 text-left">
+                            <span className="text-sm font-bold text-yellow-400 drop-shadow-md">{car.name}</span>
+                        </div>
+                    </div>
+                </div>
             );
         };
 
@@ -342,6 +333,22 @@
             const [parts, setParts] = useState({ engine: 0, mission: 0, tire: 0, brake: 0 });
             const [upgradePoints, setUpgradePoints] = useState(0);
 
+            // 신차 관련 상태
+            const [ownedCars, setOwnedCars] = useState(['lv1']);
+            const [activeCar, setActiveCar] = useState('lv1');
+            const [hasSelectedInitialCar, setHasSelectedInitialCar] = useState(false);
+            const [hasSeenLv2Popup, setHasSeenLv2Popup] = useState(false);
+            
+            // 모달 상태
+            const [showCarSelectionModal, setShowCarSelectionModal] = useState(false);
+            const [showIntroPopup, setShowIntroPopup] = useState(false);
+            const [showShopModal, setShowShopModal] = useState(false);
+            
+            // 초기화 비밀번호 모달 상태
+            const [showResetModal, setShowResetModal] = useState(false);
+            const [resetPasswordInput, setResetPasswordInput] = useState('');
+            const [resetError, setResetError] = useState('');
+
             const [levelClickCount, setLevelClickCount] = useState(0);
             const [isEditingLevel, setIsEditingLevel] = useState(false);
             const [editLevelValue, setEditLevelValue] = useState("");
@@ -357,6 +364,10 @@
                         if (data.totalExp) setTotalExp(data.totalExp);
                         if (data.parts) setParts(data.parts);
                         if (data.upgradePoints !== undefined) setUpgradePoints(data.upgradePoints);
+                        if (data.ownedCars) setOwnedCars(data.ownedCars);
+                        if (data.activeCar) setActiveCar(data.activeCar);
+                        if (data.hasSelectedInitialCar !== undefined) setHasSelectedInitialCar(data.hasSelectedInitialCar);
+                        if (data.hasSeenLv2Popup !== undefined) setHasSeenLv2Popup(data.hasSeenLv2Popup);
                     }
                 } catch (error) {
                     console.error("데이터 로드 에러:", error);
@@ -364,13 +375,17 @@
             }, []);
 
             // 로컬스토리지 저장 헬퍼 함수
-            const saveProgress = (newLevel, newExp, newParts, newPoints) => {
+            const saveProgress = (newLevel, newExp, newParts, newPoints, newOwned = ownedCars, newActive = activeCar, newSelected = hasSelectedInitialCar, newSeen = hasSeenLv2Popup) => {
                 try {
                     const dataToSave = {
                         level: newLevel,
                         totalExp: newExp,
                         parts: newParts,
                         upgradePoints: newPoints,
+                        ownedCars: newOwned,
+                        activeCar: newActive,
+                        hasSelectedInitialCar: newSelected,
+                        hasSeenLv2Popup: newSeen,
                         updatedAt: new Date().toISOString()
                     };
                     localStorage.setItem('math-racing-game-save', JSON.stringify(dataToSave));
@@ -400,17 +415,29 @@
                 if (e.key === 'Enter' || e.type === 'blur') {
                     const newLevel = parseInt(editLevelValue, 10);
                     if (!isNaN(newLevel) && newLevel > 0) {
+                        const prevLevel = level;
                         setLevel(newLevel);
                         
-                        // 에디트로 레벨업 시 포인트 보상
+                        // 레벨 1 오를 때마다 1점 보상
                         let newPoints = upgradePoints;
-                        if (newLevel > level && newLevel >= 5) {
-                            // 레벨 5부터 보상 제공
-                            const rewardLevels = newLevel - Math.max(level, 4);
-                            newPoints += rewardLevels;
+                        if (newLevel > prevLevel) {
+                            newPoints += (newLevel - prevLevel);
                         }
+
+                        let newSelected = hasSelectedInitialCar;
+                        let newSeen = hasSeenLv2Popup;
+                        
+                        if (newLevel >= 2) {
+                            if (!hasSelectedInitialCar) {
+                                setShowCarSelectionModal(true);
+                            }
+                            if (!hasSeenLv2Popup) {
+                                setShowIntroPopup(true);
+                            }
+                        }
+
                         setUpgradePoints(newPoints);
-                        saveProgress(newLevel, totalExp, parts, newPoints);
+                        saveProgress(newLevel, totalExp, parts, newPoints, ownedCars, activeCar, newSelected, newSeen);
                     }
                     setIsEditingLevel(false);
                 }
@@ -472,10 +499,22 @@
                     setLevel(prevLevel => {
                         const nextLevel = prevLevel + 1;
                         
-                        // 레벨 5 달성부터 업그레이드 포인트 1씩 지급
+                        let newSelected = hasSelectedInitialCar;
+                        let newSeen = hasSeenLv2Popup;
+
+                        if (nextLevel >= 2) {
+                            if (!hasSelectedInitialCar) {
+                                setShowCarSelectionModal(true);
+                            }
+                            if (!hasSeenLv2Popup) {
+                                setShowIntroPopup(true);
+                            }
+                        }
+
+                        // 레벨 1 올릴때마다 업그레이드 포인트 1씩 지급
                         setUpgradePoints(prevPoints => {
-                            const nextPoints = nextLevel > 4 ? prevPoints + 1 : prevPoints;
-                            saveProgress(nextLevel, nextExp, parts, nextPoints);
+                            const nextPoints = prevPoints + 1;
+                            saveProgress(nextLevel, nextExp, parts, nextPoints, ownedCars, activeCar, newSelected, newSeen);
                             return nextPoints;
                         });
                         
@@ -493,7 +532,7 @@
                         const newParts = { ...prev, [partName]: prev[partName] + 1 };
                         setUpgradePoints(prevPoints => {
                             const newPoints = prevPoints - 1;
-                            saveProgress(level, totalExp, newParts, newPoints);
+                            saveProgress(level, totalExp, newParts, newPoints, ownedCars, activeCar, hasSelectedInitialCar, hasSeenLv2Popup);
                             return newPoints;
                         });
                         return newParts;
@@ -503,7 +542,8 @@
 
             // 최고 속도 계산
             const calculateSpeed = () => {
-                const base = 200;
+                const car = CAR_DATA[activeCar] || CAR_DATA.lv1;
+                const base = car.baseSpeed;
                 // 각 부품별 기본 증가량
                 const partBonus = (parts.engine * 3) + (parts.mission * 2) + (parts.tire * 2) + (parts.brake * 2);
                 // 세트(균형) 보너스: 모든 부품 중 가장 낮은 레벨 기준 (균형있게 올리면 속도 대폭 증가)
@@ -511,6 +551,15 @@
                 const balanceBonus = minLevel * 15; 
                 
                 return base + partBonus + balanceBonus;
+            };
+
+            // 가속도 계산 (0 ~ 10)
+            const calculateAccel = () => {
+                const car = CAR_DATA[activeCar] || CAR_DATA.lv1;
+                const base = car.baseAccel;
+                // 부품에 따른 가속 보너스
+                const upgradeBonus = (parts.engine * 0.15) + (parts.mission * 0.1) + (parts.tire * 0.1);
+                return Math.min(10, parseFloat((base + upgradeBonus).toFixed(1)));
             };
 
             // 게이지 계산 (0 ~ 5)
@@ -559,8 +608,8 @@
                         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" 
                              style={{backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '20px 20px'}}></div>
                         
-                        <div className="z-10 w-full flex flex-col items-center">
-                            <div className="bg-slate-700 w-full rounded-2xl p-4 mb-6 text-center border border-slate-600 shadow-inner">
+                        <div className="z-10 w-full flex flex-col items-center h-full">
+                            <div className="bg-slate-700 w-full rounded-2xl p-4 mb-4 text-center border border-slate-600 shadow-inner">
                                 {isEditingLevel ? (
                                     <input 
                                         type="number" 
@@ -584,16 +633,50 @@
                             </div>
 
                             {/* Avatars & Speed */}
-                            <div className={`flex flex-col items-center space-y-2 justify-end relative w-full ${level >= 5 ? 'mb-4 h-48' : 'mb-8 h-64'}`}>
-                                <div className="absolute top-0 right-0 bg-red-500 text-white px-3 py-1 rounded-full font-bold shadow-lg flex items-center gap-1 z-20">
-                                    <span className="animate-pulse">⚡</span> 최고속도 {calculateSpeed()}km/h
+                            <div className="flex flex-col items-center space-y-2 justify-end relative w-full mb-4 h-56 pt-8">
+                                <div className="absolute top-0 right-0 bg-red-500 text-white px-3 py-1 rounded-full font-bold shadow-lg flex flex-col items-end gap-0.5 z-20 text-[11px] sm:text-xs">
+                                    <div className="flex items-center gap-1 font-extrabold text-white">
+                                        <span>⚡ 최고속도 {calculateSpeed()}km/h</span>
+                                    </div>
+                                    <div className="text-[10px] text-yellow-300 font-bold">
+                                        🔥 가속도 {calculateAccel()}/10
+                                    </div>
                                 </div>
                                 <RacerAvatar level={level} />
-                                <CarAvatar level={level} />
+                                <CarAvatar activeCar={activeCar} />
                             </div>
 
-                            {/* Parts Upgrade Panel (Level 5+) */}
-                            {level >= 5 && (
+                            {/* Owned Garage UI */}
+                            {ownedCars.length > 1 && (
+                                <div className="w-full bg-slate-900/50 rounded-xl p-3 mb-4 border border-slate-700/80 shadow-md z-10 text-center">
+                                    <h3 className="text-yellow-400 font-bold text-xs mb-2 flex items-center justify-center gap-1">🚗 차고 (차량 선택)</h3>
+                                    <div className="flex flex-wrap gap-1.5 justify-center">
+                                        {ownedCars.map(carId => {
+                                            const car = CAR_DATA[carId];
+                                            const isActive = activeCar === carId;
+                                            return (
+                                                <button
+                                                    key={carId}
+                                                    onClick={() => {
+                                                        setActiveCar(carId);
+                                                        saveProgress(level, totalExp, parts, upgradePoints, ownedCars, carId, hasSelectedInitialCar, hasSeenLv2Popup);
+                                                    }}
+                                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                                                        isActive
+                                                            ? 'bg-yellow-400 text-yellow-950 border-yellow-400 shadow-md scale-105'
+                                                            : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500'
+                                                    }`}
+                                                >
+                                                    {car?.name}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Parts Upgrade Panel (Level 2+) */}
+                            {level >= 2 && (
                                 <div className="w-full bg-slate-900 rounded-xl p-4 mb-4 border-2 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] z-10">
                                     <div className="flex justify-between items-center mb-3">
                                         <h3 className="text-blue-400 font-bold text-lg">🔧 튜닝 샵</h3>
@@ -630,6 +713,29 @@
                                 </div>
                             )}
 
+                            {/* Shop / Purchase Section (Level 2+) */}
+                            {level >= 2 && Object.keys(CAR_DATA).some(id => !ownedCars.includes(id)) && (
+                                <div className="w-full bg-gradient-to-br from-indigo-950 to-slate-900 rounded-xl p-4 mb-4 border border-indigo-500/50 shadow-lg z-10">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex flex-col text-left">
+                                            <span className="text-indigo-400 font-bold text-xs">🏎️ 신차 쇼룸</span>
+                                            <span className="text-slate-300 text-[10px] break-keep">5포인트로 신차를 구매해 보세요!</span>
+                                        </div>
+                                        <button
+                                            onClick={() => setShowShopModal(true)}
+                                            className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all ${
+                                                upgradePoints >= 5
+                                                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white shadow-md transform hover:scale-105 active:scale-95'
+                                                    : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed text-[10px]'
+                                            }`}
+                                            disabled={upgradePoints < 5}
+                                        >
+                                            {upgradePoints >= 5 ? '신차 구매하기' : `포인트 5점 필요 (현재 ${upgradePoints}점)`}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Progress Bar */}
                             <div className="w-full bg-slate-700 rounded-full h-8 mb-2 p-1 shadow-inner relative overflow-hidden border border-slate-600 mt-auto">
                                 <div 
@@ -644,9 +750,227 @@
                                 <span>{solvedCount} / 5</span>
                                 <span>LEVEL UP</span>
                             </div>
+
+                            {/* Reset Button */}
+                            <button
+                                onClick={() => {
+                                    setShowResetModal(true);
+                                    setResetPasswordInput('');
+                                    setResetError('');
+                                }}
+                                className="mt-6 text-[10px] text-slate-500 hover:text-red-400 transition-colors bg-slate-900/30 px-3 py-1 rounded-lg border border-slate-800 shadow-sm flex items-center gap-1 active:scale-95"
+                            >
+                                🔄 데이터 초기화
+                            </button>
                         </div>
                     </div>
 
+                    {/* Modals */}
+                    
+                    {/* Level 2 Info Popup */}
+                    {showIntroPopup && (
+                        <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300 animate-fadeIn">
+                            <div className="bg-slate-900 border-2 border-yellow-400/80 rounded-3xl p-6 max-w-sm w-full text-center shadow-[0_0_50px_rgba(250,204,21,0.2)]">
+                                <div className="text-5xl mb-4 animate-bounce">📢</div>
+                                <h3 className="text-2xl font-bold text-yellow-400 mb-4 font-jua">레벨 2 달성 축하합니다!</h3>
+                                <div className="text-slate-200 text-sm mb-6 leading-relaxed text-left bg-slate-950/60 p-4 rounded-xl border border-slate-800 font-jua whitespace-pre-line break-keep font-semibold">
+                                    {`레벨을 1 올릴때마다 포인트 1점이 주어집니다.
+                                    포인트로는 부품을 업그레이드 할수있으며,
+                                    포인트 5점을 모으면 차를 추가로 살수있습니다.`}
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setShowIntroPopup(false);
+                                        setHasSeenLv2Popup(true);
+                                        saveProgress(level, totalExp, parts, upgradePoints, ownedCars, activeCar, hasSelectedInitialCar, true);
+                                    }}
+                                    className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-bold py-3 px-6 rounded-2xl text-lg shadow-lg transform transition hover:scale-105 font-jua"
+                                >
+                                    확인했습니다! 🏎️
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Level 2 Car Selection Modal */}
+                    {showCarSelectionModal && (
+                        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn">
+                            <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl text-center flex flex-col">
+                                <h2 className="text-3xl font-bold text-yellow-400 mb-2 font-jua tracking-wide">🏎️ 차를 선택하세요!</h2>
+                                <p className="text-slate-400 text-xs sm:text-sm mb-6">첫 5문제를 해결했습니다. 본격적으로 달릴 기본 차량을 골라보세요!</p>
+                                
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+                                    {['gv70', 'k5'].map(carId => {
+                                        const car = CAR_DATA[carId];
+                                        return (
+                                            <div 
+                                                key={carId}
+                                                className="bg-slate-900 border-2 border-slate-800 hover:border-yellow-400 rounded-2xl p-4 flex flex-col items-center transition-all cursor-pointer transform hover:-translate-y-1 shadow-md hover:shadow-yellow-400/10 group"
+                                                onClick={() => {
+                                                    const newOwned = [...new Set([...ownedCars, carId])];
+                                                    setOwnedCars(newOwned);
+                                                    setActiveCar(carId);
+                                                    setHasSelectedInitialCar(true);
+                                                    setShowCarSelectionModal(false);
+                                                    saveProgress(level, totalExp, parts, upgradePoints, newOwned, carId, true, hasSeenLv2Popup);
+                                                }}
+                                            >
+                                                <img src={car.image} alt={car.name} className="w-full h-28 object-cover rounded-xl border border-slate-700 mb-3" />
+                                                <h3 className="text-lg font-bold text-white mb-1">{car.name}</h3>
+                                                <p className="text-[10px] text-slate-400 mb-3 line-clamp-2 h-8 text-center">{car.desc}</p>
+                                                
+                                                {/* Stats */}
+                                                <div className="w-full text-xs space-y-1 text-left bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
+                                                    <div className="flex justify-between font-bold text-[10px]">
+                                                        <span className="text-red-400">⚡ 최고속도</span>
+                                                        <span className="text-white">{car.baseSpeed} km/h</span>
+                                                    </div>
+                                                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                                        <div className="bg-red-500 h-full" style={{ width: `${(car.baseSpeed / 300) * 100}%` }}></div>
+                                                    </div>
+                                                    <div className="flex justify-between font-bold text-[10px] mt-1">
+                                                        <span className="text-yellow-400">🔥 가속도</span>
+                                                        <span className="text-white">{car.baseAccel} / 10</span>
+                                                    </div>
+                                                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                                        <div className="bg-yellow-400 h-full" style={{ width: `${(car.baseAccel / 10) * 100}%` }}></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Shop Modal */}
+                    {showShopModal && (
+                        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn">
+                            <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 max-w-xl w-full shadow-2xl flex flex-col max-h-[90vh]">
+                                <div className="flex justify-between items-center mb-2">
+                                    <h2 className="text-2xl font-bold text-indigo-400 font-jua">🏎️ 신차 상점</h2>
+                                    <button 
+                                        onClick={() => setShowShopModal(false)}
+                                        className="text-slate-400 hover:text-white text-xl font-bold p-1 bg-slate-900 rounded-lg w-8 h-8 flex items-center justify-center"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                                <p className="text-slate-400 text-xs mb-3">보유한 튜닝 포인트를 소모하여 매력적인 스펙의 신차를 추가 구매하세요!</p>
+                                <div className="text-xs font-bold bg-slate-900 text-indigo-300 px-3 py-2 rounded-lg border border-slate-800 mb-4 self-start">
+                                    보유 포인트: {upgradePoints} / 5
+                                </div>
+                                
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto pr-1">
+                                    {Object.keys(CAR_DATA)
+                                        .filter(carId => !ownedCars.includes(carId))
+                                        .map(carId => {
+                                            const car = CAR_DATA[carId];
+                                            return (
+                                                <div 
+                                                    key={carId}
+                                                    className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center shadow-md relative"
+                                                >
+                                                    <img src={car.image} alt={car.name} className="w-full h-24 object-cover rounded-xl border border-slate-700 mb-2" />
+                                                    <h3 className="text-base font-bold text-white mb-0.5">{car.name}</h3>
+                                                    <p className="text-[9px] text-slate-400 mb-3 text-center line-clamp-2 h-6">{car.desc}</p>
+                                                    
+                                                    {/* Stats */}
+                                                    <div className="w-full text-xs space-y-1 text-left bg-slate-950/80 p-2.5 rounded-lg border border-slate-800 mb-4">
+                                                        <div className="flex justify-between font-bold text-[9px]">
+                                                            <span className="text-red-400">⚡ 최고속도</span>
+                                                            <span className="text-white">{car.baseSpeed} km/h</span>
+                                                        </div>
+                                                        <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                                                            <div className="bg-red-500 h-full" style={{ width: `${(car.baseSpeed / 300) * 100}%` }}></div>
+                                                        </div>
+                                                        <div className="flex justify-between font-bold text-[9px] mt-1">
+                                                            <span className="text-yellow-400">🔥 가속도</span>
+                                                            <span className="text-white">{car.baseAccel} / 10</span>
+                                                        </div>
+                                                        <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                                                            <div className="bg-yellow-400 h-full" style={{ width: `${(car.baseAccel / 10) * 100}%` }}></div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <button
+                                                        onClick={() => {
+                                                            if (upgradePoints >= 5) {
+                                                                const newOwned = [...new Set([...ownedCars, carId])];
+                                                                const newPoints = upgradePoints - 5;
+                                                                setOwnedCars(newOwned);
+                                                                setActiveCar(carId);
+                                                                setUpgradePoints(newPoints);
+                                                                setShowShopModal(false);
+                                                                saveProgress(level, totalExp, parts, newPoints, newOwned, carId, hasSelectedInitialCar, hasSeenLv2Popup);
+                                                                confetti({
+                                                                    particleCount: 80,
+                                                                    spread: 70,
+                                                                    origin: { y: 0.6 }
+                                                                });
+                                                            }
+                                                        }}
+                                                        disabled={upgradePoints < 5}
+                                                        className={`w-full py-2 rounded-xl text-xs font-bold font-jua transition-all ${
+                                                            upgradePoints >= 5
+                                                                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white shadow-md active:scale-95'
+                                                                : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                                                        }`}
+                                                    >
+                                                        구매하기 (5포인트 소모)
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Reset Confirmation Modal */}
+                    {showResetModal && (
+                        <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn">
+                            <div className="bg-slate-900 border border-red-500/50 rounded-3xl p-6 max-w-sm w-full text-center shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+                                <div className="text-4xl mb-3 animate-pulse text-red-500">⚠️</div>
+                                <h3 className="text-xl font-bold text-white mb-2 font-jua">게임 초기화 경고</h3>
+                                <p className="text-slate-300 text-xs mb-4 break-keep">
+                                    초기화 진행 시 모든 레벨, 획득한 차량, 부품 등 모든 게임 정보가 **영구적으로 삭제**됩니다.
+                                </p>
+                                <div className="mb-4">
+                                    <input
+                                        type="password"
+                                        value={resetPasswordInput}
+                                        onChange={(e) => setResetPasswordInput(e.target.value)}
+                                        placeholder="비밀번호 입력"
+                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-center text-white text-lg focus:outline-none focus:border-red-500 font-bold placeholder:font-normal"
+                                    />
+                                    {resetError && <p className="text-red-400 text-xs font-bold mt-2">{resetError}</p>}
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setShowResetModal(false)}
+                                        className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded-xl text-xs transition-colors"
+                                    >
+                                        취소
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (resetPasswordInput === '1206') {
+                                                localStorage.removeItem('math-racing-game-save');
+                                                window.location.reload();
+                                            } else {
+                                                setResetError('비밀번호가 올바르지 않습니다!');
+                                            }
+                                        }}
+                                        className="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-xl text-xs transition-colors shadow-md active:scale-95"
+                                    >
+                                        확인 (초기화)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
