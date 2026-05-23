@@ -225,6 +225,38 @@
                 baseSpeed: 235,
                 baseAccel: 8.8,
                 desc: '전기차 특유의 부드럽고 균형 잡힌 친환경 SUV'
+            },
+            carnival: {
+                id: 'carnival',
+                name: '카니발',
+                image: 'car/carnival.jpg',
+                baseSpeed: 200,
+                baseAccel: 6.2,
+                desc: '넓고 안락한 공간을 자랑하는 대한민국 대표 패밀리 미니밴'
+            },
+            sorento: {
+                id: 'sorento',
+                name: '쏘렌토',
+                image: 'car/sorento.jpg',
+                baseSpeed: 208,
+                baseAccel: 6.8,
+                desc: '강인한 디자인과 뛰어난 공간 활용성의 대표 패밀리 SUV'
+            },
+            macan: {
+                id: 'macan',
+                name: '마칸',
+                image: 'car/macan.jpg',
+                baseSpeed: 238,
+                baseAccel: 8.5,
+                desc: '포르쉐의 스포츠카 DNA를 그대로 이식한 럭셔리 스포츠 SUV'
+            },
+            urus: {
+                id: 'urus',
+                name: '우루스',
+                image: 'car/urus.jpg',
+                baseSpeed: 265,
+                baseAccel: 9.9,
+                desc: '슈퍼카의 성능과 SUV의 실용성을 결합한 하이퍼 SUV'
             }
         };
 
@@ -867,11 +899,28 @@
                                         .filter(carId => !ownedCars.includes(carId))
                                         .map(carId => {
                                             const car = CAR_DATA[carId];
+                                            
+                                            // 차량별 레벨 요구조건 판별
+                                            const reqLevel = carId === 'ct' ? 10 : (carId === 'urus' ? 20 : 0);
+                                            const isLevelMet = level >= reqLevel;
+                                            const canBuy = upgradePoints >= 5 && isLevelMet;
+
                                             return (
                                                 <div 
                                                     key={carId}
-                                                    className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center shadow-md relative"
+                                                    className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center shadow-md relative group"
                                                 >
+                                                    {/* 레벨 제한 배지 */}
+                                                    {reqLevel > 0 && (
+                                                        <span className={`absolute top-2 right-2 font-bold text-[9px] px-2 py-0.5 rounded-full border ${
+                                                            isLevelMet
+                                                                ? 'bg-green-500/80 text-white border-green-400'
+                                                                : 'bg-red-500/90 text-white border-red-400 animate-pulse'
+                                                        }`}>
+                                                            {isLevelMet ? `Lv.${reqLevel} 해금 완료` : `Lv.${reqLevel} 필요`}
+                                                        </span>
+                                                    )}
+
                                                     <img src={car.image} alt={car.name} className="w-full h-24 object-cover rounded-xl border border-slate-700 mb-2" />
                                                     <h3 className="text-base font-bold text-white mb-0.5">{car.name}</h3>
                                                     <p className="text-[9px] text-slate-400 mb-3 text-center line-clamp-2 h-6">{car.desc}</p>
@@ -896,7 +945,7 @@
                                                     
                                                     <button
                                                         onClick={() => {
-                                                            if (upgradePoints >= 5) {
+                                                            if (canBuy) {
                                                                 const newOwned = [...new Set([...ownedCars, carId])];
                                                                 const newPoints = upgradePoints - 5;
                                                                 setOwnedCars(newOwned);
@@ -911,14 +960,18 @@
                                                                 });
                                                             }
                                                         }}
-                                                        disabled={upgradePoints < 5}
+                                                        disabled={!canBuy}
                                                         className={`w-full py-2 rounded-xl text-xs font-bold font-jua transition-all ${
-                                                            upgradePoints >= 5
+                                                            canBuy
                                                                 ? 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white shadow-md active:scale-95'
-                                                                : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                                                                : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed text-[10px]'
                                                         }`}
                                                     >
-                                                        구매하기 (5포인트 소모)
+                                                        {!isLevelMet 
+                                                            ? `Lv.${reqLevel} 해금 필요 (현재 Lv.${level})` 
+                                                            : upgradePoints >= 5 
+                                                                ? '구매하기 (5포인트 소모)' 
+                                                                : '포인트 부족 (5포인트 필요)'}
                                                     </button>
                                                 </div>
                                             );
