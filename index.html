@@ -9,6 +9,10 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
     
@@ -52,6 +56,15 @@
         .animate-float {
             animation: float 3s ease-in-out infinite;
         }
+
+        /* FadeIn animation for modals */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
     </style>
 </head>
 <body class="min-h-screen text-slate-800">
@@ -59,6 +72,178 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
+
+        // ==========================================
+        // [필독] Firebase 연결 설정 정보 기입
+        // ==========================================
+        // 본인의 Firebase 웹 프로젝트 설정 값을 여기에 붙여넣어 주세요.
+        // 비워두면 자동으로 브라우저 내 '로컬 모의 클라우드(Mock Cloud DB)' 모드로 안전하게 작동합니다.
+        const firebaseConfig = {
+            apiKey: "AIzaSyD0jJfd1uyjzpYqN3cyLHn1sVr7dIkxQac",
+            authDomain: "my-family-ab699.firebaseapp.com",
+            projectId: "my-family-ab699",
+            storageBucket: "my-family-ab699.firebasestorage.app",
+            messagingSenderId: "289127412048",
+            appId: "1:289127412048:web:cd5f0b40f4bd6a56a5bc55",
+            measurementId: "G-GLH78VGYSF"
+        };
+
+        // 데이터베이스 통합 제어 서비스 (Firestore & Local Mock Cloud 호환)
+        const dbService = {
+            isFirebase: false,
+            firestore: null,
+
+            init() {
+                const hasConfig = firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey.trim() !== "";
+                if (hasConfig) {
+                    try {
+                        if (!firebase.apps.length) {
+                            firebase.initializeApp(firebaseConfig);
+                        }
+                        this.firestore = firebase.firestore();
+                        this.isFirebase = true;
+                        console.log("🟢 Firebase Firestore 클라우드 연결 완료!");
+                    } catch (error) {
+                        console.error("🔴 Firebase 초기화 에러 (로컬 모의 클라우드로 대체):", error);
+                        this.isFirebase = false;
+                    }
+                } else {
+                    console.log("🔵 Firebase 설정 없음 - 로컬 모의 클라우드로 작동합니다.");
+                    this.isFirebase = false;
+                }
+            },
+
+            // 로컬 모의 클라우드 헬퍼 (로컬스토리지 모의 DB)
+            _getLocalUsers() {
+                try {
+                    const data = localStorage.getItem('racer-mock-cloud-users');
+                    return data ? JSON.parse(data) : {};
+                } catch (e) {
+                    return {};
+                }
+            },
+
+            _saveLocalUsers(users) {
+                try {
+                    localStorage.setItem('racer-mock-cloud-users', JSON.stringify(users));
+                } catch (e) {
+                    console.error("로컬 백업 저장 실패:", e);
+                }
+            },
+
+            // 로그인 처리
+            async login(id, password) {
+                const normalizedId = id.trim().toLowerCase();
+                if (!normalizedId) throw new Error("아이디를 입력해주세요.");
+
+                if (this.isFirebase) {
+                    try {
+                        const doc = await this.firestore.collection('racer_users').doc(normalizedId).get();
+                        if (!doc.exists) {
+                            throw new Error("존재하지 않는 아이디입니다.");
+                        }
+                        const userData = doc.data();
+                        if (userData.password !== password) {
+                            throw new Error("비밀번호가 올바르지 않습니다.");
+                        }
+                        return userData;
+                    } catch (error) {
+                        console.error("Firebase 로그인 실패:", error);
+                        throw error;
+                    }
+                } else {
+                    // 로컬 모의 클라우드 로그인
+                    const users = this._getLocalUsers();
+                    const user = users[normalizedId];
+                    if (!user) {
+                        throw new Error("존재하지 않는 아이디입니다.");
+                    }
+                    if (user.password !== password) {
+                        throw new Error("비밀번호가 올바르지 않습니다.");
+                    }
+                    return user;
+                }
+            },
+
+            // 회원가입 처리
+            async register(id, password) {
+                const normalizedId = id.trim().toLowerCase();
+                if (!normalizedId) throw new Error("아이디를 입력해주세요.");
+                if (!password || password.trim() === "") throw new Error("비밀번호를 입력해주세요.");
+
+                // 기본 시작 정보
+                const defaultData = {
+                    id: normalizedId,
+                    password: password,
+                    level: 1,
+                    totalExp: 0,
+                    parts: { engine: 0, mission: 0, tire: 0, brake: 0 },
+                    upgradePoints: 0,
+                    ownedCars: ['lv1'],
+                    activeCar: 'lv1',
+                    hasSelectedInitialCar: false,
+                    hasSeenLv2Popup: false,
+                    updatedAt: new Date().toISOString()
+                };
+
+                if (this.isFirebase) {
+                    try {
+                        const docRef = this.firestore.collection('racer_users').doc(normalizedId);
+                        const doc = await docRef.get();
+                        if (doc.exists) {
+                            throw new Error("이미 존재하는 아이디입니다.");
+                        }
+                        await docRef.set(defaultData);
+                        return defaultData;
+                    } catch (error) {
+                        console.error("Firebase 회원가입 실패:", error);
+                        throw error;
+                    }
+                } else {
+                    // 로컬 모의 클라우드 가입
+                    const users = this._getLocalUsers();
+                    if (users[normalizedId]) {
+                        throw new Error("이미 존재하는 아이디입니다.");
+                    }
+                    users[normalizedId] = defaultData;
+                    this._saveLocalUsers(users);
+                    return defaultData;
+                }
+            },
+
+            // 데이터 클라우드 동기화 저장
+            async saveProgress(id, progressData) {
+                const normalizedId = id.trim().toLowerCase();
+                if (!normalizedId) return;
+
+                if (this.isFirebase) {
+                    try {
+                        await this.firestore.collection('racer_users').doc(normalizedId).update({
+                            ...progressData,
+                            updatedAt: new Date().toISOString()
+                        });
+                        console.log("☁️ Firestore 클라우드 저장 완료");
+                    } catch (error) {
+                        console.error("Firestore 저장 실패 (배경 백업):", error);
+                    }
+                } else {
+                    // 로컬 모의 클라우드 업데이트
+                    const users = this._getLocalUsers();
+                    if (users[normalizedId]) {
+                        users[normalizedId] = {
+                            ...users[normalizedId],
+                            ...progressData,
+                            updatedAt: new Date().toISOString()
+                        };
+                        this._saveLocalUsers(users);
+                        console.log("💾 로컬 모의 클라우드 데이터 저장 완료");
+                    }
+                }
+            }
+        };
+
+        // DB 서비스 즉시 이니셜라이즈
+        dbService.init();
 
         // 문제 생성 유틸리티 함수
         const generateProblem = () => {
@@ -354,7 +539,134 @@
             );
         };
 
+        const LoginScreen = ({ onLoginSuccess }) => {
+            const [id, setId] = useState('');
+            const [password, setPassword] = useState('');
+            const [isRegistering, setIsRegistering] = useState(false);
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                if (!id.trim() || !password.trim()) {
+                    setError('아이디와 비밀번호를 모두 입력해주세요.');
+                    return;
+                }
+                setLoading(true);
+                try {
+                    if (isRegistering) {
+                        const userData = await dbService.register(id, password);
+                        onLoginSuccess(userData);
+                    } else {
+                        const userData = await dbService.login(id, password);
+                        onLoginSuccess(userData);
+                    }
+                } catch (err) {
+                    setError(err.message || '요청 처리 중 에러가 발생했습니다.');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden font-jua">
+                    {/* Background Deco */}
+                    <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none" 
+                         style={{backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '20px 20px'}}></div>
+                    
+                    {/* Login Card */}
+                    <div className="bg-slate-800/80 border-2 border-indigo-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl backdrop-blur-md relative z-10 animate-fadeIn text-white text-center">
+                        <div className="text-6xl mb-3 animate-bounce">🏁</div>
+                        <h1 className="text-3xl font-extrabold text-indigo-400 drop-shadow-sm mb-1 tracking-wide">레이서 키우기</h1>
+                        <p className="text-slate-400 text-xs sm:text-sm mb-6">산수 배틀을 승리하여 나만의 드림카를 튜닝하세요!</p>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-4 text-left">
+                            <div>
+                                <label className="block text-slate-300 text-xs font-bold mb-1.5 pl-1">👤 플레이어 ID</label>
+                                <input
+                                    type="text"
+                                    value={id}
+                                    onChange={(e) => setId(e.target.value)}
+                                    placeholder="영문, 숫자 아이디 입력"
+                                    className="w-full bg-slate-950/60 border border-slate-700/80 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 transition-colors font-sans text-sm"
+                                    disabled={loading}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-slate-300 text-xs font-bold mb-1.5 pl-1">🔑 비밀번호</label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="비밀번호 입력"
+                                    className="w-full bg-slate-950/60 border border-slate-700/80 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 transition-colors font-sans text-sm"
+                                    disabled={loading}
+                                />
+                            </div>
+
+                            {error && (
+                                <div className="bg-red-500/10 border border-red-500/50 rounded-xl p-3 text-red-400 text-xs font-bold animate-pulse text-center">
+                                    ⚠️ {error}
+                                </div>
+                            )}
+
+                            <div className="pt-2 flex flex-col gap-2">
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg text-sm sm:text-base active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                >
+                                    {loading ? (
+                                        <span>처리 중...</span>
+                                    ) : (
+                                        <>
+                                            <span>{isRegistering ? '회원가입 완료 및 출발' : '로그인 및 서킷 입장'}</span>
+                                            <span>🚀</span>
+                                        </>
+                                    )}
+                                </button>
+                                
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsRegistering(!isRegistering);
+                                        setError('');
+                                    }}
+                                    className="w-full text-center text-xs text-slate-400 hover:text-indigo-400 py-1.5 transition-colors font-bold"
+                                    disabled={loading}
+                                >
+                                    {isRegistering ? '이미 아이디가 있으신가요? 로그인하기' : '처음 오셨나요? 새로운 플레이어 등록하기'}
+                                </button>
+                            </div>
+                        </form>
+
+                        <div className="mt-6 pt-4 border-t border-slate-700/50 flex flex-col items-center gap-1.5">
+                            {dbService.isFirebase ? (
+                                <div className="flex items-center gap-1.5 text-xs text-green-400 font-bold bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/30">
+                                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                    <span>실시간 클라우드 동기화 모드 작동 중</span>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center gap-1 text-center">
+                                    <div className="flex items-center gap-1.5 text-xs text-amber-400 font-bold bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/30">
+                                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                        <span>로컬 체험 모드 실행 중</span>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 max-w-[280px] leading-normal break-keep">
+                                        💡 index.html의 <b>firebaseConfig</b> 객체에 연결 값을 넣으면 원격 실시간 서버로 연동됩니다!
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         const App = () => {
+            const [currentUser, setCurrentUser] = useState(null);
+
             const [level, setLevel] = useState(1);
             const [problems, setProblems] = useState([]);
             const [solvedCount, setSolvedCount] = useState(0); // 현재 라운드에서 푼 문제 수
@@ -386,28 +698,78 @@
             const [editLevelValue, setEditLevelValue] = useState("");
             const clickTimeout = useRef(null);
 
-            // 로컬스토리지에서 세이브 데이터 불러오기
+            // 자동 로그인 세션 복구 및 초기화
             useEffect(() => {
-                try {
-                    const savedData = localStorage.getItem('math-racing-game-save');
-                    if (savedData) {
-                        const data = JSON.parse(savedData);
-                        if (data.level) setLevel(data.level);
-                        if (data.totalExp) setTotalExp(data.totalExp);
-                        if (data.parts) setParts(data.parts);
-                        if (data.upgradePoints !== undefined) setUpgradePoints(data.upgradePoints);
-                        if (data.ownedCars) setOwnedCars(data.ownedCars);
-                        if (data.activeCar) setActiveCar(data.activeCar);
-                        if (data.hasSelectedInitialCar !== undefined) setHasSelectedInitialCar(data.hasSelectedInitialCar);
-                        if (data.hasSeenLv2Popup !== undefined) setHasSeenLv2Popup(data.hasSeenLv2Popup);
-                    }
-                } catch (error) {
-                    console.error("데이터 로드 에러:", error);
+                const savedUser = localStorage.getItem('racer-current-user');
+                if (savedUser) {
+                    restoreUserSession(savedUser);
                 }
             }, []);
 
-            // 로컬스토리지 저장 헬퍼 함수
+            const restoreUserSession = async (userId) => {
+                try {
+                    let userData = null;
+                    if (dbService.isFirebase) {
+                        const doc = await dbService.firestore.collection('racer_users').doc(userId).get();
+                        if (doc.exists) {
+                            userData = doc.data();
+                        }
+                    } else {
+                        const users = dbService._getLocalUsers();
+                        userData = users[userId];
+                    }
+
+                    if (userData) {
+                        setCurrentUser(userId);
+                        setLevel(userData.level || 1);
+                        setTotalExp(userData.totalExp || 0);
+                        setParts(userData.parts || { engine: 0, mission: 0, tire: 0, brake: 0 });
+                        setUpgradePoints(userData.upgradePoints || 0);
+                        setOwnedCars(userData.ownedCars || ['lv1']);
+                        setActiveCar(userData.activeCar || 'lv1');
+                        setHasSelectedInitialCar(userData.hasSelectedInitialCar || false);
+                        setHasSeenLv2Popup(userData.hasSeenLv2Popup || false);
+                    }
+                } catch (error) {
+                    console.error("세션 복구 에러:", error);
+                }
+            };
+
+            // 로그인 성공 핸들러
+            const handleLoginSuccess = (userData) => {
+                localStorage.setItem('racer-current-user', userData.id);
+                setCurrentUser(userData.id);
+                
+                // 유저 진행 데이터 바인딩
+                setLevel(userData.level || 1);
+                setTotalExp(userData.totalExp || 0);
+                setParts(userData.parts || { engine: 0, mission: 0, tire: 0, brake: 0 });
+                setUpgradePoints(userData.upgradePoints || 0);
+                setOwnedCars(userData.ownedCars || ['lv1']);
+                setActiveCar(userData.activeCar || 'lv1');
+                setHasSelectedInitialCar(userData.hasSelectedInitialCar || false);
+                setHasSeenLv2Popup(userData.hasSeenLv2Popup || false);
+            };
+
+            // 로그아웃 핸들러
+            const handleLogout = () => {
+                localStorage.removeItem('racer-current-user');
+                setCurrentUser(null);
+                // 모든 상태 기본값으로 환원
+                setLevel(1);
+                setTotalExp(0);
+                setParts({ engine: 0, mission: 0, tire: 0, brake: 0 });
+                setUpgradePoints(0);
+                setOwnedCars(['lv1']);
+                setActiveCar('lv1');
+                setHasSelectedInitialCar(false);
+                setHasSeenLv2Popup(false);
+            };
+
+            // 클라우드/모의 DB 세이브 헬퍼 함수
             const saveProgress = (newLevel, newExp, newParts, newPoints, newOwned = ownedCars, newActive = activeCar, newSelected = hasSelectedInitialCar, newSeen = hasSeenLv2Popup) => {
+                const userId = currentUser || localStorage.getItem('racer-current-user');
+                if (!userId) return;
                 try {
                     const dataToSave = {
                         level: newLevel,
@@ -417,10 +779,9 @@
                         ownedCars: newOwned,
                         activeCar: newActive,
                         hasSelectedInitialCar: newSelected,
-                        hasSeenLv2Popup: newSeen,
-                        updatedAt: new Date().toISOString()
+                        hasSeenLv2Popup: newSeen
                     };
-                    localStorage.setItem('math-racing-game-save', JSON.stringify(dataToSave));
+                    dbService.saveProgress(userId, dataToSave);
                 } catch (error) {
                     console.error("진행상황 저장 에러:", error);
                 }
@@ -597,6 +958,10 @@
             // 게이지 계산 (0 ~ 5)
             const progressPercent = (solvedCount / 5) * 100;
 
+            if (!currentUser) {
+                return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+            }
+
             return (
                 <div className="max-w-6xl mx-auto p-4 sm:p-8 flex flex-col lg:flex-row gap-8 items-center lg:items-start min-h-screen">
                     
@@ -641,6 +1006,20 @@
                              style={{backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '20px 20px'}}></div>
                         
                         <div className="z-10 w-full flex flex-col items-center h-full">
+                            {/* Account Info and Logout */}
+                            <div className="w-full flex justify-between items-center bg-slate-900/60 border border-slate-700/50 rounded-2xl px-4 py-2 mb-3 text-xs">
+                                <div className="flex items-center gap-1.5 font-bold">
+                                    <span className="text-[14px]">👤</span>
+                                    <span className="text-slate-200 truncate max-w-[120px]">{currentUser} 님</span>
+                                </div>
+                                <button
+                                    onClick={handleLogout}
+                                    className="bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 border border-red-500/30 font-bold px-2.5 py-1.5 rounded-xl transition-all active:scale-95 text-[10px]"
+                                >
+                                    로그아웃 🚪
+                                </button>
+                            </div>
+
                             <div className="bg-slate-700 w-full rounded-2xl p-4 mb-4 text-center border border-slate-600 shadow-inner">
                                 {isEditingLevel ? (
                                     <input 
@@ -1010,8 +1389,19 @@
                                     <button
                                         onClick={() => {
                                             if (resetPasswordInput === '1206') {
-                                                localStorage.removeItem('math-racing-game-save');
-                                                window.location.reload();
+                                                const defaultData = {
+                                                    level: 1,
+                                                    totalExp: 0,
+                                                    parts: { engine: 0, mission: 0, tire: 0, brake: 0 },
+                                                    upgradePoints: 0,
+                                                    ownedCars: ['lv1'],
+                                                    activeCar: 'lv1',
+                                                    hasSelectedInitialCar: false,
+                                                    hasSeenLv2Popup: false
+                                                };
+                                                dbService.saveProgress(currentUser, defaultData).then(() => {
+                                                    window.location.reload();
+                                                });
                                             } else {
                                                 setResetError('비밀번호가 올바르지 않습니다!');
                                             }
