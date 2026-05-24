@@ -73,6 +73,99 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
+        const CAR_DATA = {
+            lv1: {
+                id: 'lv1',
+                name: '초보 연습 차량',
+                image: 'car/lv1.jpg',
+                baseSpeed: 180,
+                baseAccel: 4.5,
+                desc: '레이싱의 기본을 다지기 위한 조그만 연습 차량'
+            },
+            gv70: {
+                id: 'gv70',
+                name: 'GV70',
+                image: 'car/gv70.jpg',
+                baseSpeed: 215,
+                baseAccel: 8.2,
+                desc: '묵직한 가속감과 안정성을 겸비한 럭셔리 SUV'
+            },
+            k5: {
+                id: 'k5',
+                name: 'K5',
+                image: 'car/k5.jpg',
+                baseSpeed: 225,
+                baseAccel: 7.4,
+                desc: '스포티한 주행감과 민첩한 코너링의 스포츠 세단'
+            },
+            ct: {
+                id: 'ct',
+                name: '사이버트럭',
+                image: 'car/ct.jpg',
+                baseSpeed: 250,
+                baseAccel: 9.7,
+                desc: '단단한 장갑과 폭발적인 초반 토크의 미래형 트럭'
+            },
+            my: {
+                id: 'my',
+                name: '모델 Y',
+                image: 'car/my.jpg',
+                baseSpeed: 235,
+                baseAccel: 8.8,
+                desc: '전기차 특유의 부드럽고 균형 잡힌 친환경 SUV'
+            },
+            carnival: {
+                id: 'carnival',
+                name: '카니발',
+                image: 'car/carnival.jpg',
+                baseSpeed: 200,
+                baseAccel: 6.2,
+                desc: '넓고 안락한 공간을 자랑하는 대한민국 대표 패밀리 미니밴'
+            },
+            sorento: {
+                id: 'sorento',
+                name: '쏘렌토',
+                image: 'car/sorento.jpg',
+                baseSpeed: 208,
+                baseAccel: 6.8,
+                desc: '강인한 디자인과 뛰어난 공간 활용성의 대표 패밀리 SUV'
+            },
+            macan: {
+                id: 'macan',
+                name: '마칸',
+                image: 'car/macan.jpg',
+                baseSpeed: 238,
+                baseAccel: 8.5,
+                desc: '포르쉐의 스포츠카 DNA를 그대로 이식한 럭셔리 스포츠 SUV'
+            },
+            urus: {
+                id: 'urus',
+                name: '우루스',
+                image: 'car/urus.jpg',
+                baseSpeed: 265,
+                baseAccel: 9.9,
+                desc: '슈퍼카의 성능과 SUV의 실용성을 결합한 하이퍼 SUV'
+            }
+        };
+
+        // 최고속도 연산 순수 함수
+        const getSpeedVal = (carId, partsVal) => {
+            const car = CAR_DATA[carId] || CAR_DATA.lv1;
+            const base = car.baseSpeed;
+            const partBonus = (partsVal.engine * 3) + (partsVal.mission * 2) + (partsVal.tire * 2) + (partsVal.brake * 2);
+            const minLevel = Math.min(partsVal.engine, partsVal.mission, partsVal.tire, partsVal.brake);
+            const balanceBonus = minLevel * 15; 
+            return base + partBonus + balanceBonus;
+        };
+
+        // 가속도 연산 순수 함수
+        const getAccelVal = (carId, partsVal) => {
+            const car = CAR_DATA[carId] || CAR_DATA.lv1;
+            const base = car.baseAccel;
+            const upgradeBonus = (partsVal.engine * 0.15) + (partsVal.mission * 0.1) + (partsVal.tire * 0.1);
+            return Math.min(10, parseFloat((base + upgradeBonus).toFixed(1)));
+        };
+
         // ==========================================
         // [필독] Firebase 연결 설정 정보 기입
         // ==========================================
@@ -239,6 +332,26 @@
                         console.log("💾 로컬 모의 클라우드 데이터 저장 완료");
                     }
                 }
+            },
+
+            // 실시간 랭킹 수집 메서드
+            async fetchRankings() {
+                if (this.isFirebase) {
+                    try {
+                        const snapshot = await this.firestore.collection('racer_users').get();
+                        const list = [];
+                        snapshot.forEach(doc => {
+                            list.push(doc.data());
+                        });
+                        return list;
+                    } catch (error) {
+                        console.error("Firebase 랭킹 수집 실패:", error);
+                        throw error;
+                    }
+                } else {
+                    const usersObj = this._getLocalUsers();
+                    return Object.values(usersObj);
+                }
             }
         };
 
@@ -368,81 +481,6 @@
                     <rect x="35" y="30" width="30" height="5" fill="#f0f9ff" opacity="0.8" />
                 </svg>
             );
-        };
-
-        const CAR_DATA = {
-            lv1: {
-                id: 'lv1',
-                name: '초보 연습 차량',
-                image: 'car/lv1.jpg',
-                baseSpeed: 180,
-                baseAccel: 4.5,
-                desc: '레이싱의 기본을 다지기 위한 조그만 연습 차량'
-            },
-            gv70: {
-                id: 'gv70',
-                name: 'GV70',
-                image: 'car/gv70.jpg',
-                baseSpeed: 215,
-                baseAccel: 8.2,
-                desc: '묵직한 가속감과 안정성을 겸비한 럭셔리 SUV'
-            },
-            k5: {
-                id: 'k5',
-                name: 'K5',
-                image: 'car/k5.jpg',
-                baseSpeed: 225,
-                baseAccel: 7.4,
-                desc: '스포티한 주행감과 민첩한 코너링의 스포츠 세단'
-            },
-            ct: {
-                id: 'ct',
-                name: '사이버트럭',
-                image: 'car/ct.jpg',
-                baseSpeed: 250,
-                baseAccel: 9.7,
-                desc: '단단한 장갑과 폭발적인 초반 토크의 미래형 트럭'
-            },
-            my: {
-                id: 'my',
-                name: '모델 Y',
-                image: 'car/my.jpg',
-                baseSpeed: 235,
-                baseAccel: 8.8,
-                desc: '전기차 특유의 부드럽고 균형 잡힌 친환경 SUV'
-            },
-            carnival: {
-                id: 'carnival',
-                name: '카니발',
-                image: 'car/carnival.jpg',
-                baseSpeed: 200,
-                baseAccel: 6.2,
-                desc: '넓고 안락한 공간을 자랑하는 대한민국 대표 패밀리 미니밴'
-            },
-            sorento: {
-                id: 'sorento',
-                name: '쏘렌토',
-                image: 'car/sorento.jpg',
-                baseSpeed: 208,
-                baseAccel: 6.8,
-                desc: '강인한 디자인과 뛰어난 공간 활용성의 대표 패밀리 SUV'
-            },
-            macan: {
-                id: 'macan',
-                name: '마칸',
-                image: 'car/macan.jpg',
-                baseSpeed: 238,
-                baseAccel: 8.5,
-                desc: '포르쉐의 스포츠카 DNA를 그대로 이식한 럭셔리 스포츠 SUV'
-            },
-            urus: {
-                id: 'urus',
-                name: '우루스',
-                image: 'car/urus.jpg',
-                baseSpeed: 265,
-                baseAccel: 9.9,
-                desc: '슈퍼카의 성능과 SUV의 실용성을 결합한 하이퍼 SUV'
-            }
         };
 
         const CarAvatar = ({ activeCar }) => {
@@ -693,6 +731,12 @@
             const [resetPasswordInput, setResetPasswordInput] = useState('');
             const [resetError, setResetError] = useState('');
 
+            // 랭킹보드 모달 상태
+            const [showRankingModal, setShowRankingModal] = useState(false);
+            const [rankingTab, setRankingTab] = useState('level'); // 'level' or 'speed'
+            const [rankingData, setRankingData] = useState([]);
+            const [rankingLoading, setRankingLoading] = useState(false);
+
             const [levelClickCount, setLevelClickCount] = useState(0);
             const [isEditingLevel, setIsEditingLevel] = useState(false);
             const [editLevelValue, setEditLevelValue] = useState("");
@@ -766,11 +810,27 @@
                 setHasSeenLv2Popup(false);
             };
 
+            // 랭킹 열기 핸들러
+            const handleOpenRanking = async () => {
+                setShowRankingModal(true);
+                setRankingLoading(true);
+                try {
+                    const rawList = await dbService.fetchRankings();
+                    setRankingData(rawList);
+                } catch (error) {
+                    console.error("랭킹 수집 실패:", error);
+                } finally {
+                    setRankingLoading(false);
+                }
+            };
+
             // 클라우드/모의 DB 세이브 헬퍼 함수
             const saveProgress = (newLevel, newExp, newParts, newPoints, newOwned = ownedCars, newActive = activeCar, newSelected = hasSelectedInitialCar, newSeen = hasSeenLv2Popup) => {
                 const userId = currentUser || localStorage.getItem('racer-current-user');
                 if (!userId) return;
                 try {
+                    const speed = getSpeedVal(newActive, newParts);
+                    const carName = CAR_DATA[newActive]?.name || '';
                     const dataToSave = {
                         level: newLevel,
                         totalExp: newExp,
@@ -779,7 +839,9 @@
                         ownedCars: newOwned,
                         activeCar: newActive,
                         hasSelectedInitialCar: newSelected,
-                        hasSeenLv2Popup: newSeen
+                        hasSeenLv2Popup: newSeen,
+                        maxSpeed: speed,
+                        activeCarName: carName
                     };
                     dbService.saveProgress(userId, dataToSave);
                 } catch (error) {
@@ -1007,17 +1069,25 @@
                         
                         <div className="z-10 w-full flex flex-col items-center h-full">
                             {/* Account Info and Logout */}
-                            <div className="w-full flex justify-between items-center bg-slate-900/60 border border-slate-700/50 rounded-2xl px-4 py-2 mb-3 text-xs">
+                            <div className="w-full flex justify-between items-center bg-slate-900/60 border border-slate-700/50 rounded-2xl px-4 py-2 mb-3 text-xs font-jua">
                                 <div className="flex items-center gap-1.5 font-bold">
                                     <span className="text-[14px]">👤</span>
-                                    <span className="text-slate-200 truncate max-w-[120px]">{currentUser} 님</span>
+                                    <span className="text-slate-200 truncate max-w-[90px]">{currentUser} 님</span>
                                 </div>
-                                <button
-                                    onClick={handleLogout}
-                                    className="bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 border border-red-500/30 font-bold px-2.5 py-1.5 rounded-xl transition-all active:scale-95 text-[10px]"
-                                >
-                                    로그아웃 🚪
-                                </button>
+                                <div className="flex gap-1.5">
+                                    <button
+                                        onClick={handleOpenRanking}
+                                        className="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 hover:text-yellow-200 border border-yellow-500/30 font-bold px-2.5 py-1.5 rounded-xl transition-all active:scale-95 text-[10px] flex items-center gap-0.5"
+                                    >
+                                        🏆 랭킹
+                                    </button>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 border border-red-500/30 font-bold px-2.5 py-1.5 rounded-xl transition-all active:scale-95 text-[10px]"
+                                    >
+                                        로그아웃 🚪
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="bg-slate-700 w-full rounded-2xl p-4 mb-4 text-center border border-slate-600 shadow-inner">
@@ -1414,6 +1484,184 @@
                             </div>
                         </div>
                     )}
+
+                    {/* Ranking Board Modal */}
+                    {showRankingModal && (() => {
+                        const sortedRanking = [...rankingData].sort((a, b) => {
+                            if (rankingTab === 'level') {
+                                const aLvl = a.level || 1;
+                                const bLvl = b.level || 1;
+                                if (bLvl !== aLvl) return bLvl - aLvl;
+                                
+                                const aExp = a.totalExp || 0;
+                                const bExp = b.totalExp || 0;
+                                if (bExp !== aExp) return bExp - aExp;
+                                
+                                return (a.id || '').localeCompare(b.id || '');
+                            } else { // 'speed'
+                                const aSpeed = a.maxSpeed || 200;
+                                const bSpeed = b.maxSpeed || 200;
+                                if (bSpeed !== aSpeed) return bSpeed - aSpeed;
+                                
+                                const aLvl = a.level || 1;
+                                const bLvl = b.level || 1;
+                                if (bLvl !== aLvl) return bLvl - aLvl;
+                                
+                                return (a.id || '').localeCompare(b.id || '');
+                            }
+                        });
+
+                        return (
+                            <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn font-jua">
+                                <div className="bg-slate-950/90 border border-yellow-400/50 shadow-[0_0_30px_rgba(250,204,21,0.25)] rounded-3xl p-6 sm:p-8 max-w-lg w-full backdrop-blur-md relative z-50 flex flex-col max-h-[90vh] text-white">
+                                    {/* Header */}
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h2 className="text-2xl font-bold text-yellow-400 flex items-center gap-2">
+                                            🏆 명예의 전당 (실시간 랭킹)
+                                        </h2>
+                                        <button 
+                                            onClick={() => setShowRankingModal(false)}
+                                            className="text-slate-400 hover:text-white text-xl font-bold p-1 bg-slate-900 rounded-lg w-8 h-8 flex items-center justify-center transition-colors"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+
+                                    {/* Tabs */}
+                                    <div className="flex gap-2 mb-4 bg-slate-900 p-1 rounded-xl border border-slate-800">
+                                        <button
+                                            onClick={() => setRankingTab('level')}
+                                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1 ${
+                                                rankingTab === 'level'
+                                                    ? 'bg-yellow-400 text-yellow-950 font-extrabold shadow-md'
+                                                    : 'text-slate-400 hover:text-white'
+                                            }`}
+                                        >
+                                            ⭐ 레벨 순
+                                        </button>
+                                        <button
+                                            onClick={() => setRankingTab('speed')}
+                                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1 ${
+                                                rankingTab === 'speed'
+                                                    ? 'bg-yellow-400 text-yellow-950 font-extrabold shadow-md'
+                                                    : 'text-slate-400 hover:text-white'
+                                            }`}
+                                        >
+                                            🔥 최고속도 순
+                                        </button>
+                                    </div>
+
+                                    {/* Loading State */}
+                                    {rankingLoading ? (
+                                        <div className="flex-1 flex flex-col items-center justify-center py-12 gap-3">
+                                            <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                                            <p className="text-slate-400 text-sm animate-pulse">실시간 순위 분석 중...</p>
+                                        </div>
+                                    ) : sortedRanking.length === 0 ? (
+                                        <div className="flex-1 flex items-center justify-center py-12 text-slate-500">
+                                            등록된 플레이어가 없습니다.
+                                        </div>
+                                    ) : (
+                                        /* Rankings List */
+                                        <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 max-h-[55vh] custom-scrollbar">
+                                            {sortedRanking.map((item, index) => {
+                                                const isSelf = item.id === currentUser;
+                                                const rankNum = index + 1;
+                                                
+                                                // 1, 2, 3위 메달 및 로우 그라데이션
+                                                let rowStyle = "bg-slate-900/60 border border-slate-800 hover:border-slate-700";
+                                                let badge = null;
+                                                let rankText = <span className="text-slate-400 font-bold text-sm w-6 text-center">{rankNum}</span>;
+
+                                                if (rankNum === 1) {
+                                                    rowStyle = "bg-gradient-to-r from-yellow-500/25 to-amber-500/10 border border-yellow-400/50";
+                                                    badge = "🥇";
+                                                    rankText = <span className="text-2xl w-6 text-center">{badge}</span>;
+                                                } else if (rankNum === 2) {
+                                                    rowStyle = "bg-gradient-to-r from-slate-300/20 to-slate-400/5 border border-slate-300/40";
+                                                    badge = "🥈";
+                                                    rankText = <span className="text-2xl w-6 text-center">{badge}</span>;
+                                                } else if (rankNum === 3) {
+                                                    rowStyle = "bg-gradient-to-r from-amber-600/20 to-amber-700/5 border border-amber-600/40";
+                                                    badge = "🥉";
+                                                    rankText = <span className="text-2xl w-6 text-center">{badge}</span>;
+                                                }
+
+                                                // 본인 계정 테두리 강조
+                                                if (isSelf) {
+                                                    rowStyle = `bg-indigo-950/40 border-2 border-indigo-400 shadow-[0_0_12px_rgba(129,140,248,0.25)]`;
+                                                }
+
+                                                const carName = item.activeCarName || CAR_DATA[item.activeCar || 'lv1']?.name || '연습 차량';
+                                                
+                                                return (
+                                                    <div 
+                                                        key={item.id} 
+                                                        className={`flex items-center justify-between p-3.5 rounded-2xl transition-all ${rowStyle}`}
+                                                    >
+                                                        <div className="flex items-center gap-3 min-w-0">
+                                                            {/* 본인일 경우 좌측 지시 화살표 */}
+                                                            {isSelf && (
+                                                                <span className="text-indigo-400 text-sm animate-pulse">▶</span>
+                                                            )}
+                                                            {rankText}
+                                                            <div className="flex flex-col min-w-0">
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <span className={`font-bold text-sm truncate ${isSelf ? 'text-indigo-300' : 'text-slate-200'}`}>
+                                                                        {item.id}
+                                                                    </span>
+                                                                    {isSelf && (
+                                                                        <span className="bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-[9px] px-1.5 py-0.5 rounded-md font-extrabold">
+                                                                            YOU
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <span className="text-[10px] text-slate-400 font-medium truncate mt-0.5">
+                                                                    🚗 {carName}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* 스펙 정보 */}
+                                                        <div className="flex items-center gap-4 text-right shrink-0">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-yellow-400 font-bold text-sm">
+                                                                    Lv.{item.level || 1}
+                                                                </span>
+                                                                <span className="text-[9px] text-slate-500 font-bold">
+                                                                    {item.totalExp || 0} EXP
+                                                                </span>
+                                                            </div>
+                                                            <div className="border-l border-slate-800 h-6"></div>
+                                                            <div className="flex flex-col min-w-[70px]">
+                                                                <span className="text-red-400 font-extrabold text-sm">
+                                                                    ⚡ {item.maxSpeed || 200}
+                                                                </span>
+                                                                <span className="text-[8px] text-red-500/70 font-extrabold">
+                                                                    km/h
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {/* Footer */}
+                                    <div className="mt-5 pt-3 border-t border-slate-900 flex justify-between items-center text-[10px] text-slate-500 font-semibold pl-1">
+                                        <span>🏁 실시간 데이터 동기화 완료</span>
+                                        <button 
+                                            onClick={() => setShowRankingModal(false)}
+                                            className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-bold py-2 px-6 rounded-xl transition-all active:scale-95 text-xs"
+                                        >
+                                            닫기
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </div>
             );
         };
