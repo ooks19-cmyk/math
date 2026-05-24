@@ -359,7 +359,68 @@
         dbService.init();
 
         // 문제 생성 유틸리티 함수
-        const generateProblem = () => {
+        const generateProblem = (isToddler = false, isAdult = false) => {
+            if (isToddler) {
+                // 유아모드: 1 ~ 9 사이의 한 자리 숫자를 그대로 따라 쓰는 방식
+                const num = Math.floor(Math.random() * 9) + 1;
+                return {
+                    id: Math.random().toString(36).substr(2, 9),
+                    type: 'toddler',
+                    numbers: [num],
+                    ops: [],
+                    answer: num
+                };
+            }
+            if (isAdult) {
+                // 성인모드: 세 자리 숫자 더하기 빼기
+                const type = Math.floor(Math.random() * 2) + 1;
+                if (type === 1) {
+                    // 세자리 수 2개 연산
+                    const a = Math.floor(Math.random() * 900) + 100; // 100 ~ 999
+                    const b = Math.floor(Math.random() * 900) + 100; // 100 ~ 999
+                    const op = Math.random() > 0.5 ? '+' : '-';
+                    
+                    const finalA = op === '-' && a < b ? b : a;
+                    const finalB = op === '-' && a < b ? a : b;
+                    const finalAnswer = op === '+' ? finalA + finalB : finalA - finalB;
+
+                    return {
+                        id: Math.random().toString(36).substr(2, 9),
+                        type: 'adult',
+                        numbers: [finalA, finalB],
+                        ops: [op],
+                        answer: finalAnswer
+                    };
+                } else {
+                    // 세자리 수 3개 혼합 연산
+                    const a = Math.floor(Math.random() * 900) + 100;
+                    const b = Math.floor(Math.random() * 400) + 100;
+                    const c = Math.floor(Math.random() * 400) + 100;
+                    const op1 = Math.random() > 0.5 ? '+' : '-';
+                    const op2 = Math.random() > 0.5 ? '+' : '-';
+                    
+                    let finalA = a;
+                    let finalB = b;
+                    if (op1 === '-' && a < b) {
+                        finalA = b + 150;
+                    }
+                    let temp = op1 === '+' ? finalA + finalB : finalA - finalB;
+
+                    let finalC = c;
+                    if (op2 === '-' && temp < c) {
+                        finalC = Math.floor(temp / 2) + 1;
+                    }
+                    const answer = op2 === '+' ? temp + finalC : temp - finalC;
+
+                    return {
+                        id: Math.random().toString(36).substr(2, 9),
+                        type: 'adult_3',
+                        numbers: [finalA, finalB, finalC],
+                        ops: [op1, op2],
+                        answer: answer
+                    };
+                }
+            }
             const type = Math.floor(Math.random() * 3) + 1;
             
             if (type === 1) {
@@ -384,7 +445,7 @@
                     a = Math.floor(Math.random() * 70) + 11; // 11 ~ 80
                     b = Math.floor(Math.random() * 8) + 2;   // 2 ~ 9
                 } while ((a % 10) + b < 10); // 일의 자리 합이 10 이상이어야 받아올림 발생
-
+ 
                 return {
                     id: Math.random().toString(36).substr(2, 9),
                     type: 2,
@@ -405,7 +466,7 @@
                     let temp = op1 === '+' ? a + b : a - b;
                     ans = op2 === '+' ? temp + c : temp - c;
                 } while ((op1 === '-' && a - b < 0) || ans < 0 || ans > 40); // 중간 계산과 결과가 음수가 되지 않도록 설정
-
+ 
                 return {
                     id: Math.random().toString(36).substr(2, 9),
                     type: 3,
@@ -540,7 +601,12 @@
             return (
                 <div className={`problem-card bg-white p-6 rounded-2xl flex flex-col items-end w-48 sm:w-56 ${isSolved ? 'solved' : ''}`}>
                     <div className="text-4xl font-bold tracking-widest flex flex-col items-end space-y-2 text-slate-700 w-full pr-2">
-                        {problem.type !== 3 ? (
+                        {problem.type === 'toddler' ? (
+                            <div className="flex flex-col items-center justify-center w-full py-4 text-center">
+                                <span className="text-xs text-slate-400 mb-2 font-bold tracking-normal">숫자를 똑같이 써봐요!</span>
+                                <span className="text-6xl font-black text-indigo-600 animate-pulse">{problem.answer}</span>
+                            </div>
+                        ) : problem.numbers.length === 2 ? (
                             <>
                                 <div>{problem.numbers[0]}</div>
                                 <div className="flex w-full justify-between">
@@ -898,17 +964,21 @@
                 }
             };
 
-            // 초기 문제 세팅
-            useEffect(() => {
-                generateBatch();
-            }, []);
-
             const generateBatch = () => {
-                const newProbs = Array.from({ length: 5 }, () => generateProblem());
+                const isToddler = currentUser && currentUser.toLowerCase() === 'sea';
+                const isAdult = currentUser && currentUser.toLowerCase() === 'ooks12';
+                const newProbs = Array.from({ length: 5 }, () => generateProblem(isToddler, isAdult));
                 setProblems(newProbs);
                 setSolvedCount(0);
                 setShowNextStage(false);
             };
+
+            // 로그인 상태(currentUser)가 변경되거나 세션 복구 완료 시 해당 계정의 맞춤 문제 세트를 생성
+            useEffect(() => {
+                if (currentUser) {
+                    generateBatch();
+                }
+            }, [currentUser]);
 
             const handleProblemSolved = () => {
                 setSolvedCount(prev => {
