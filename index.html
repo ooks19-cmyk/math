@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,29 +10,31 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
+
     <!-- Firebase Compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
-    
+
     <style>
         body {
             font-family: 'Jua', sans-serif;
-            background-color: #f0fdf4; /* Light green background */
+            background-color: #f0fdf4;
+            /* Light green background */
             margin: 0;
             padding: 0;
             touch-action: manipulation;
         }
-        
+
         .problem-card {
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        
+
         .problem-card.solved {
-            background-color: #dcfce7; /* Green for solved */
+            background-color: #dcfce7;
+            /* Green for solved */
             border: 2px solid #22c55e;
             transform: scale(1.02);
         }
@@ -41,6 +44,7 @@
             appearance: none;
             -moz-appearance: textfield;
         }
+
         .input-box::-webkit-outer-spin-button,
         .input-box::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -49,24 +53,42 @@
 
         /* Float animation for the car */
         @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-            100% { transform: translateY(0px); }
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
         }
+
         .animate-float {
             animation: float 3s ease-in-out infinite;
         }
 
         /* FadeIn animation for modals */
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
+
         .animate-fadeIn {
             animation: fadeIn 0.3s ease-out forwards;
         }
     </style>
 </head>
+
 <body class="min-h-screen text-slate-800">
     <div id="root"></div>
 
@@ -181,7 +203,7 @@
             const base = car.baseSpeed;
             const partBonus = (partsVal.engine * 3) + (partsVal.mission * 2) + (partsVal.tire * 2) + (partsVal.brake * 2);
             const minLevel = Math.min(partsVal.engine, partsVal.mission, partsVal.tire, partsVal.brake);
-            const balanceBonus = minLevel * 15; 
+            const balanceBonus = minLevel * 15;
             return base + partBonus + balanceBonus;
         };
 
@@ -388,14 +410,18 @@
         // 문제 생성 유틸리티 함수
         const generateProblem = (isToddler = false, isAdult = false) => {
             if (isToddler) {
-                // 유아모드: 1 ~ 9 사이의 한 자리 숫자를 그대로 따라 쓰는 방식
-                const num = Math.floor(Math.random() * 9) + 1;
+                // 유아모드: 1 ~ 5 사이의 과일 개수 세기 방식
+                const fruits = ['🍎', '🍌', '🍇', '🍓', '🍊'];
+                const chosenFruit = fruits[Math.floor(Math.random() * fruits.length)];
+                const count = Math.floor(Math.random() * 5) + 1; // 1 ~ 5 제한
                 return {
                     id: Math.random().toString(36).substr(2, 9),
                     type: 'toddler',
-                    numbers: [num],
+                    fruit: chosenFruit,
+                    fruitCount: count,
+                    numbers: [count],
                     ops: [],
-                    answer: num
+                    answer: count
                 };
             }
             if (isAdult) {
@@ -406,7 +432,7 @@
                     const a = Math.floor(Math.random() * 900) + 100; // 100 ~ 999
                     const b = Math.floor(Math.random() * 900) + 100; // 100 ~ 999
                     const op = Math.random() > 0.5 ? '+' : '-';
-                    
+
                     const finalA = op === '-' && a < b ? b : a;
                     const finalB = op === '-' && a < b ? a : b;
                     const finalAnswer = op === '+' ? finalA + finalB : finalA - finalB;
@@ -425,7 +451,7 @@
                     const c = Math.floor(Math.random() * 400) + 100;
                     const op1 = Math.random() > 0.5 ? '+' : '-';
                     const op2 = Math.random() > 0.5 ? '+' : '-';
-                    
+
                     let finalA = a;
                     let finalB = b;
                     if (op1 === '-' && a < b) {
@@ -449,7 +475,7 @@
                 }
             }
             const type = Math.floor(Math.random() * 3) + 1;
-            
+
             if (type === 1) {
                 // 1. 받아내림이 있는 두자리 숫자 뺄셈
                 let a, b;
@@ -457,7 +483,7 @@
                     a = Math.floor(Math.random() * 70) + 20; // 20 ~ 89
                     b = Math.floor(Math.random() * 8) + 2;   // 2 ~ 9
                 } while (a % 10 >= b); // 일의 자리 숫자가 빼는 수보다 작아야 받아내림 발생
-                
+
                 return {
                     id: Math.random().toString(36).substr(2, 9),
                     type: 1,
@@ -472,7 +498,7 @@
                     a = Math.floor(Math.random() * 70) + 11; // 11 ~ 80
                     b = Math.floor(Math.random() * 8) + 2;   // 2 ~ 9
                 } while ((a % 10) + b < 10); // 일의 자리 합이 10 이상이어야 받아올림 발생
- 
+
                 return {
                     id: Math.random().toString(36).substr(2, 9),
                     type: 2,
@@ -489,11 +515,11 @@
                     c = Math.floor(Math.random() * 9) + 1;   // 1 ~ 9
                     op1 = Math.random() > 0.5 ? '+' : '-';
                     op2 = Math.random() > 0.5 ? '+' : '-';
-                    
+
                     let temp = op1 === '+' ? a + b : a - b;
                     ans = op2 === '+' ? temp + c : temp - c;
                 } while ((op1 === '-' && a - b < 0) || ans < 0 || ans > 40); // 중간 계산과 결과가 음수가 되지 않도록 설정
- 
+
                 return {
                     id: Math.random().toString(36).substr(2, 9),
                     type: 3,
@@ -507,7 +533,7 @@
         // 레벨에 따른 레이서 및 자동차 SVG 컴포넌트
         const RacerAvatar = ({ level }) => {
             const visualLevel = Math.min(level, 4); // 외형은 4단계까지만
-            
+
             // 1단계: 초보 꼬마 레이서
             if (visualLevel === 1) {
                 return (
@@ -574,14 +600,14 @@
         const CarAvatar = ({ activeCar, onClick }) => {
             const car = CAR_DATA[activeCar] || CAR_DATA.lv1;
             return (
-                <div 
+                <div
                     onClick={onClick}
                     className="relative w-48 sm:w-64 animate-float drop-shadow-2xl group flex flex-col items-center cursor-pointer"
                 >
                     <div className="relative overflow-hidden rounded-2xl border-4 border-slate-700 shadow-xl bg-slate-900 w-full h-32 sm:h-40 animate-pulse hover:animate-none">
-                        <img 
-                            src={car.image} 
-                            alt={car.name} 
+                        <img
+                            src={car.image}
+                            alt={car.name}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60"></div>
@@ -607,19 +633,19 @@
 
             const handleChange = (e) => {
                 if (isSolved) return; // 이미 풀었으면 입력 방지
-                
+
                 const val = e.target.value;
                 setInputValue(val);
 
                 if (parseInt(val) === problem.answer) {
                     setIsSolved(true);
                     onSolve();
-                    
+
                     // 정답 시 축하 효과
                     const rect = inputRef.current.getBoundingClientRect();
                     const x = (rect.left + rect.width / 2) / window.innerWidth;
                     const y = (rect.top + rect.height / 2) / window.innerHeight;
-                    
+
                     confetti({
                         particleCount: 50,
                         spread: 60,
@@ -633,9 +659,23 @@
                 <div className={`problem-card bg-white p-6 rounded-2xl flex flex-col items-end w-48 sm:w-56 ${isSolved ? 'solved' : ''}`}>
                     <div className="text-4xl font-bold tracking-widest flex flex-col items-end space-y-2 text-slate-700 w-full pr-2">
                         {problem.type === 'toddler' ? (
-                            <div className="flex flex-col items-center justify-center w-full py-4 text-center">
-                                <span className="text-xs text-slate-400 mb-2 font-bold tracking-normal">숫자를 똑같이 써봐요!</span>
-                                <span className="text-6xl font-black text-indigo-600 animate-pulse">{problem.answer}</span>
+                            <div className="flex flex-col items-center justify-center w-full py-2 text-center">
+                                <span className="text-xs text-indigo-500 mb-3 font-extrabold tracking-normal">과일이 모두 몇 개일까요? 🍒</span>
+                                <div className="flex flex-wrap items-center justify-center gap-2 py-4 px-4 bg-slate-50 border border-slate-100 rounded-2xl w-full select-none shadow-inner min-h-[70px]">
+                                    {Array.from({ length: problem.fruitCount || problem.answer }).map((_, i) => (
+                                        <span 
+                                            key={i} 
+                                            className="text-4xl animate-bounce" 
+                                            style={{ 
+                                                animationDelay: `${i * 0.15}s`, 
+                                                animationDuration: '1.2s',
+                                                display: 'inline-block'
+                                            }}
+                                        >
+                                            {problem.fruit || '🍎'}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
                         ) : problem.numbers.length === 2 ? (
                             <>
@@ -707,15 +747,15 @@
             return (
                 <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden font-jua">
                     {/* Background Deco */}
-                    <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none" 
-                         style={{backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '20px 20px'}}></div>
-                    
+                    <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none"
+                        style={{ backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '20px 20px' }}></div>
+
                     {/* Login Card */}
                     <div className="bg-slate-800/80 border-2 border-indigo-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl backdrop-blur-md relative z-10 animate-fadeIn text-white text-center">
                         <div className="text-6xl mb-3 animate-bounce">🏁</div>
                         <h1 className="text-3xl font-extrabold text-indigo-400 drop-shadow-sm mb-1 tracking-wide">레이서 키우기</h1>
                         <p className="text-slate-400 text-xs sm:text-sm mb-6">산수 배틀을 승리하여 나만의 드림카를 튜닝하세요!</p>
-                        
+
                         <form onSubmit={handleSubmit} className="space-y-4 text-left">
                             <div>
                                 <label className="block text-slate-300 text-xs font-bold mb-1.5 pl-1">👤 플레이어 ID</label>
@@ -761,7 +801,7 @@
                                         </>
                                     )}
                                 </button>
-                                
+
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -817,12 +857,12 @@
             const [activeCar, setActiveCar] = useState('lv1');
             const [hasSelectedInitialCar, setHasSelectedInitialCar] = useState(false);
             const [hasSeenLv2Popup, setHasSeenLv2Popup] = useState(false);
-            
+
             // 모달 상태
             const [showCarSelectionModal, setShowCarSelectionModal] = useState(false);
             const [showIntroPopup, setShowIntroPopup] = useState(false);
             const [showShopModal, setShowShopModal] = useState(false);
-            
+
             // 초기화 비밀번호 모달 상태
             const [showResetModal, setShowResetModal] = useState(false);
             const [resetPasswordInput, setResetPasswordInput] = useState('');
@@ -887,7 +927,7 @@
                         setActiveCar(userData.activeCar || 'lv1');
                         setHasSelectedInitialCar(userData.hasSelectedInitialCar || false);
                         setHasSeenLv2Popup(userData.hasSeenLv2Popup || false);
-                        
+
                         // 구버전 및 단일 데이터 형식에 대한 유연한 하이브리드 복원 안전망
                         let matchMap = {};
                         if (userData.lastMatchMap) {
@@ -904,7 +944,7 @@
             const handleLoginSuccess = (userData) => {
                 localStorage.setItem('racer-current-user', userData.id);
                 setCurrentUser(userData.id);
-                
+
                 // 유저 진행 데이터 바인딩
                 setLevel(userData.level || 1);
                 setTotalExp(userData.totalExp || 0);
@@ -914,7 +954,7 @@
                 setActiveCar(userData.activeCar || 'lv1');
                 setHasSelectedInitialCar(userData.hasSelectedInitialCar || false);
                 setHasSeenLv2Popup(userData.hasSeenLv2Popup || false);
-                
+
                 let matchMap = {};
                 if (userData.lastMatchMap) {
                     matchMap = typeof userData.lastMatchMap === 'string' ? {} : userData.lastMatchMap;
@@ -995,10 +1035,10 @@
                 const pSpeed = calculateSpeed();
                 const pAccel = calculateAccel();
                 const oppSpeed = opponent.maxSpeed || 200;
-                
+
                 // 상대방 가속도 산출을 위한 안전 fallback 포함 연산
                 const oppAccel = getAccelVal(
-                    opponent.activeCar || 'lv1', 
+                    opponent.activeCar || 'lv1',
                     opponent.parts || { engine: 0, mission: 0, tire: 0, brake: 0 }
                 );
 
@@ -1035,7 +1075,7 @@
                 const a = accel;
                 const t_acc = v_max / a;
                 const d_acc = 0.5 * a * t_acc * t_acc;
-                
+
                 if (t <= t_acc) {
                     const curDist = 0.5 * a * t * t;
                     return Math.min(10000, curDist);
@@ -1066,7 +1106,7 @@
                 const pAccel = calculateAccel();
                 const oppSpeed = battleOpponent.maxSpeed || 200;
                 const oppAccel = getAccelVal(
-                    battleOpponent.activeCar || 'lv1', 
+                    battleOpponent.activeCar || 'lv1',
                     battleOpponent.parts || { engine: 0, mission: 0, tire: 0, brake: 0 }
                 );
 
@@ -1095,7 +1135,7 @@
 
                     const curPlayerDist = getDistAtTime(pSpeed, pAccel, simT);
                     const curOpponentDist = getDistAtTime(oppSpeed, oppAccel, simT);
-                    
+
                     setPlayerDistance(curPlayerDist);
                     setOpponentDistance(curOpponentDist);
                     setPlayerSpeed(getSpeedAtTime(pSpeed, pAccel, simT));
@@ -1125,7 +1165,7 @@
 
                         // 저장 동기화
                         saveProgress(level, totalExp, parts, nextPoints, ownedCars, activeCar, hasSelectedInitialCar, hasSeenLv2Popup, nextMatchMap);
-                        
+
                         if (isWin) {
                             // 대축하 confetti 분사
                             confetti({
@@ -1153,11 +1193,16 @@
 
             const handleLevelTitleClick = () => {
                 if (clickTimeout.current) clearTimeout(clickTimeout.current);
-                
+
                 const newCount = levelClickCount + 1;
                 if (newCount >= 5) {
-                    setIsEditingLevel(true);
-                    setEditLevelValue(level.toString());
+                    const passwordInput = prompt("비밀번호를 입력해야 사용이 가능합니다.\n비밀번호를 입력해주세요:");
+                    if (passwordInput === '2569') {
+                        setIsEditingLevel(true);
+                        setEditLevelValue(level.toString());
+                    } else {
+                        alert("비밀번호가 올바르지 않습니다!");
+                    }
                     setLevelClickCount(0);
                 } else {
                     setLevelClickCount(newCount);
@@ -1174,7 +1219,7 @@
                     if (!isNaN(newLevel) && newLevel > 0) {
                         const prevLevel = level;
                         setLevel(newLevel);
-                        
+
                         // 레벨 1 오를 때마다 1점 보상
                         let newPoints = upgradePoints;
                         if (newLevel > prevLevel) {
@@ -1183,7 +1228,7 @@
 
                         let newSelected = hasSelectedInitialCar;
                         let newSeen = hasSeenLv2Popup;
-                        
+
                         if (newLevel >= 2) {
                             if (!hasSelectedInitialCar) {
                                 setShowCarSelectionModal(true);
@@ -1259,7 +1304,7 @@
                     const nextExp = prev + 1;
                     setLevel(prevLevel => {
                         const nextLevel = prevLevel + 1;
-                        
+
                         let newSelected = hasSelectedInitialCar;
                         let newSeen = hasSeenLv2Popup;
 
@@ -1278,7 +1323,7 @@
                             saveProgress(nextLevel, nextExp, parts, nextPoints, ownedCars, activeCar, newSelected, newSeen);
                             return nextPoints;
                         });
-                        
+
                         return nextLevel;
                     });
                     return nextExp;
@@ -1309,8 +1354,8 @@
                 const partBonus = (parts.engine * 3) + (parts.mission * 2) + (parts.tire * 2) + (parts.brake * 2);
                 // 세트(균형) 보너스: 모든 부품 중 가장 낮은 레벨 기준 (균형있게 올리면 속도 대폭 증가)
                 const minLevel = Math.min(parts.engine, parts.mission, parts.tire, parts.brake);
-                const balanceBonus = minLevel * 15; 
-                
+                const balanceBonus = minLevel * 15;
+
                 return base + partBonus + balanceBonus;
             };
 
@@ -1332,7 +1377,7 @@
 
             return (
                 <div className="max-w-6xl mx-auto p-4 sm:p-8 flex flex-col lg:flex-row gap-8 items-center lg:items-start min-h-screen">
-                    
+
                     {/* Left: Math Problems Area */}
                     <div className="flex-1 w-full bg-white/50 p-6 rounded-3xl shadow-sm border border-slate-200">
                         <div className="flex justify-between items-center mb-6">
@@ -1346,10 +1391,10 @@
 
                         <div className="flex flex-wrap justify-center gap-6">
                             {problems.map((prob) => (
-                                <MathProblem 
-                                    key={prob.id} 
-                                    problem={prob} 
-                                    onSolve={handleProblemSolved} 
+                                <MathProblem
+                                    key={prob.id}
+                                    problem={prob}
+                                    onSolve={handleProblemSolved}
                                 />
                             ))}
                         </div>
@@ -1357,7 +1402,7 @@
                         {showNextStage && (
                             <div className="mt-10 flex flex-col items-center animate-bounce">
                                 <p className="text-2xl text-green-600 font-bold mb-4">최고에요! 레벨 업!</p>
-                                <button 
+                                <button
                                     onClick={generateBatch}
                                     className="bg-blue-500 hover:bg-blue-600 text-white text-2xl font-bold py-4 px-10 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95"
                                 >
@@ -1370,9 +1415,9 @@
                     {/* Right: Gamification Area (Avatar & Progress) */}
                     <div className="w-full lg:w-1/3 bg-slate-800 rounded-3xl p-6 shadow-2xl text-white flex flex-col items-center relative overflow-hidden">
                         {/* Background Deco */}
-                        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" 
-                             style={{backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '20px 20px'}}></div>
-                        
+                        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none"
+                            style={{ backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '20px 20px' }}></div>
+
                         <div className="z-10 w-full flex flex-col items-center h-full">
                             {/* Account Info and Logout */}
                             <div className="w-full flex justify-between items-center bg-slate-900/60 border border-slate-700/50 rounded-2xl px-4 py-2 mb-3 text-xs font-jua">
@@ -1398,8 +1443,8 @@
 
                             <div className="bg-slate-700 w-full rounded-2xl p-4 mb-4 text-center border border-slate-600 shadow-inner">
                                 {isEditingLevel ? (
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         value={editLevelValue}
                                         onChange={(e) => setEditLevelValue(e.target.value)}
                                         onKeyDown={handleLevelEditComplete}
@@ -1408,7 +1453,7 @@
                                         autoFocus
                                     />
                                 ) : (
-                                    <h2 
+                                    <h2
                                         className="text-yellow-400 text-2xl font-bold mb-1 cursor-pointer select-none transition-transform active:scale-95"
                                         onClick={handleLevelTitleClick}
                                         title="5번 연속 클릭하면 레벨을 변경할 수 있습니다!"
@@ -1430,8 +1475,8 @@
                                     </div>
                                 </div>
                                 <RacerAvatar level={level} />
-                                <CarAvatar 
-                                    activeCar={activeCar} 
+                                <CarAvatar
+                                    activeCar={activeCar}
                                     onClick={() => {
                                         const car = CAR_DATA[activeCar] || CAR_DATA.lv1;
                                         setSelectedImageUrl(car.image);
@@ -1456,14 +1501,13 @@
                                                         setActiveCar(carId);
                                                         saveProgress(level, totalExp, parts, upgradePoints, ownedCars, carId, hasSelectedInitialCar, hasSeenLv2Popup);
                                                     }}
-                                                    className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 select-none ${
-                                                        isActive
+                                                    className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 select-none ${isActive
                                                             ? 'bg-yellow-400 text-yellow-950 border-yellow-400 shadow-md scale-105'
                                                             : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {car?.image && (
-                                                        <div 
+                                                        <div
                                                             className="relative w-5 h-5 rounded-md overflow-hidden border border-slate-600/50 cursor-zoom-in group/thumb"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
@@ -1473,9 +1517,9 @@
                                                             }}
                                                             title="사진 크게 보기"
                                                         >
-                                                            <img 
-                                                                src={car.image} 
-                                                                alt={car.name} 
+                                                            <img
+                                                                src={car.image}
+                                                                alt={car.name}
                                                                 className="w-full h-full object-cover transition-transform group-hover/thumb:scale-125"
                                                             />
                                                             <div className="absolute inset-0 bg-black/10 group-hover/thumb:bg-transparent transition-colors"></div>
@@ -1510,7 +1554,7 @@
                                                     <span className="text-slate-300 text-[11px]">{part.icon} {part.name}</span>
                                                     <span className="text-yellow-400 font-bold text-base">Lv.{parts[part.id]}</span>
                                                 </div>
-                                                <button 
+                                                <button
                                                     onClick={() => handleUpgrade(part.id)}
                                                     disabled={upgradePoints <= 0}
                                                     className={`w-8 h-8 rounded-full font-bold flex items-center justify-center transition-all
@@ -1547,7 +1591,7 @@
 
                             {/* Progress Bar */}
                             <div className="w-full bg-slate-700 rounded-full h-8 mb-2 p-1 shadow-inner relative overflow-hidden border border-slate-600 mt-auto">
-                                <div 
+                                <div
                                     className="bg-gradient-to-r from-green-400 to-green-500 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
                                     style={{ width: `${Math.max(5, progressPercent)}%` }} // 최소 너비 유지
                                 >
@@ -1575,7 +1619,7 @@
                     </div>
 
                     {/* Modals */}
-                    
+
                     {/* Level 2 Info Popup */}
                     {showIntroPopup && (
                         <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all duration-300 animate-fadeIn">
@@ -1607,12 +1651,12 @@
                             <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl text-center flex flex-col">
                                 <h2 className="text-3xl font-bold text-yellow-400 mb-2 font-jua tracking-wide">🏎️ 차를 선택하세요!</h2>
                                 <p className="text-slate-400 text-xs sm:text-sm mb-6">첫 5문제를 해결했습니다. 본격적으로 달릴 기본 차량을 골라보세요!</p>
-                                
+
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
                                     {['gv70', 'k5'].map(carId => {
                                         const car = CAR_DATA[carId];
                                         return (
-                                            <div 
+                                            <div
                                                 key={carId}
                                                 className="bg-slate-900 border-2 border-slate-800 hover:border-yellow-400 rounded-2xl p-4 flex flex-col items-center transition-all cursor-pointer transform hover:-translate-y-1 shadow-md hover:shadow-yellow-400/10 group"
                                                 onClick={() => {
@@ -1625,23 +1669,23 @@
                                                 }}
                                             >
                                                 <div className="relative w-full h-28 mb-3 overflow-hidden rounded-xl border border-slate-700 group/sel">
-                                                     <img 
-                                                         src={car.image} 
-                                                         alt={car.name} 
-                                                         className="w-full h-full object-cover transition-transform duration-500 group-hover/sel:scale-110 cursor-zoom-in"
-                                                         onClick={(e) => {
-                                                             e.stopPropagation(); // 카드 선택 방지
-                                                             setSelectedImageUrl(car.image);
-                                                             setSelectedImageName(car.name);
-                                                             setShowImageModal(true);
-                                                         }}
-                                                         title="사진 크게 보기"
-                                                     />
-                                                     <span className="absolute bottom-1 right-1 text-[8px] bg-slate-950/80 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/20">🔍 확대</span>
-                                                 </div>
+                                                    <img
+                                                        src={car.image}
+                                                        alt={car.name}
+                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover/sel:scale-110 cursor-zoom-in"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation(); // 카드 선택 방지
+                                                            setSelectedImageUrl(car.image);
+                                                            setSelectedImageName(car.name);
+                                                            setShowImageModal(true);
+                                                        }}
+                                                        title="사진 크게 보기"
+                                                    />
+                                                    <span className="absolute bottom-1 right-1 text-[8px] bg-slate-950/80 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/20">🔍 확대</span>
+                                                </div>
                                                 <h3 className="text-lg font-bold text-white mb-1">{car.name}</h3>
                                                 <p className="text-[10px] text-slate-400 mb-3 line-clamp-2 h-8 text-center">{car.desc}</p>
-                                                
+
                                                 {/* Stats */}
                                                 <div className="w-full text-xs space-y-1 text-left bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
                                                     <div className="flex justify-between font-bold text-[10px]">
@@ -1666,13 +1710,13 @@
                             </div>
                         </div>
                     )}
-                               {/* Shop Modal */}
+                    {/* Shop Modal */}
                     {showShopModal && (
                         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn">
                             <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 max-w-xl w-full shadow-2xl flex flex-col max-h-[90vh]">
                                 <div className="flex justify-between items-center mb-2">
                                     <h2 className="text-2xl font-bold text-indigo-400 font-jua">🏎️ 신차 상점</h2>
-                                    <button 
+                                    <button
                                         onClick={() => setShowShopModal(false)}
                                         className="text-slate-400 hover:text-white text-xl font-bold p-1 bg-slate-900 rounded-lg w-8 h-8 flex items-center justify-center"
                                     >
@@ -1683,39 +1727,38 @@
                                 <div className="text-xs font-bold bg-slate-900 text-indigo-300 px-3 py-2 rounded-lg border border-slate-800 mb-4 self-start">
                                     보유 포인트: {upgradePoints} / 5
                                 </div>
-                                
+
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto pr-1">
                                     {Object.keys(CAR_DATA)
                                         .filter(carId => !ownedCars.includes(carId))
                                         .map(carId => {
                                             const car = CAR_DATA[carId];
-                                            
+
                                             // 차량별 레벨 요구조건 판별 (CAR_DATA의 reqLevel 동적 참조)
                                             const reqLevel = car.reqLevel || 0;
                                             const isLevelMet = level >= reqLevel;
                                             const canBuy = upgradePoints >= 5 && isLevelMet;
 
-                                             return (
-                                                <div 
+                                            return (
+                                                <div
                                                     key={carId}
                                                     className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center shadow-md relative group"
                                                 >
                                                     {/* 레벨 제한 배지 */}
                                                     {reqLevel > 0 && (
-                                                        <span className={`absolute top-2 right-2 font-bold text-[9px] px-2 py-0.5 rounded-full border ${
-                                                            isLevelMet
+                                                        <span className={`absolute top-2 right-2 font-bold text-[9px] px-2 py-0.5 rounded-full border ${isLevelMet
                                                                 ? 'bg-green-500/80 text-white border-green-400'
                                                                 : 'bg-red-500/90 text-white border-red-400 animate-pulse'
-                                                        }`}>
+                                                            }`}>
                                                             {isLevelMet ? `Lv.${reqLevel} 해금 완료` : `Lv.${reqLevel} 필요`}
                                                         </span>
                                                     )}
 
                                                     <div className="relative w-full h-24 mb-2 overflow-hidden rounded-xl border border-slate-700 group/shop">
-                                                        <img 
-                                                            src={car.image} 
-                                                            alt={car.name} 
-                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover/shop:scale-110 cursor-zoom-in" 
+                                                        <img
+                                                            src={car.image}
+                                                            alt={car.name}
+                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover/shop:scale-110 cursor-zoom-in"
                                                             onClick={() => {
                                                                 setSelectedImageUrl(car.image);
                                                                 setSelectedImageName(car.name);
@@ -1727,7 +1770,7 @@
                                                     </div>
                                                     <h3 className="text-base font-bold text-white mb-0.5">{car.name}</h3>
                                                     <p className="text-[9px] text-slate-400 mb-3 text-center line-clamp-2 h-6">{car.desc}</p>
-                                                    
+
                                                     {/* Stats */}
                                                     <div className="w-full text-xs space-y-1 text-left bg-slate-950/80 p-2.5 rounded-lg border border-slate-800 mb-4">
                                                         <div className="flex justify-between font-bold text-[9px]">
@@ -1745,7 +1788,7 @@
                                                             <div className="bg-yellow-400 h-full" style={{ width: `${(car.baseAccel / 10) * 100}%` }}></div>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     <button
                                                         onClick={() => {
                                                             if (canBuy) {
@@ -1764,16 +1807,15 @@
                                                             }
                                                         }}
                                                         disabled={!canBuy}
-                                                        className={`w-full py-2 rounded-xl text-xs font-bold font-jua transition-all ${
-                                                            canBuy
+                                                        className={`w-full py-2 rounded-xl text-xs font-bold font-jua transition-all ${canBuy
                                                                 ? 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white shadow-md active:scale-95'
                                                                 : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed text-[10px]'
-                                                        }`}
+                                                            }`}
                                                     >
-                                                        {!isLevelMet 
-                                                            ? `Lv.${reqLevel} 해금 필요 (현재 Lv.${level})` 
-                                                            : upgradePoints >= 5 
-                                                                ? '구매하기 (5포인트 소모)' 
+                                                        {!isLevelMet
+                                                            ? `Lv.${reqLevel} 해금 필요 (현재 Lv.${level})`
+                                                            : upgradePoints >= 5
+                                                                ? '구매하기 (5포인트 소모)'
                                                                 : '포인트 부족 (5포인트 필요)'}
                                                     </button>
                                                 </div>
@@ -1786,30 +1828,30 @@
 
                     {/* 자동차 이미지 확대 뷰어 모달 */}
                     {showImageModal && (
-                        <div 
+                        <div
                             className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fadeIn"
                             onClick={() => setShowImageModal(false)}
                         >
-                            <div 
+                            <div
                                 className="bg-slate-950/95 border-2 border-indigo-500/60 rounded-3xl p-6 max-w-2xl w-full shadow-[0_0_45px_rgba(99,102,241,0.55)] flex flex-col items-center relative"
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <button 
+                                <button
                                     onClick={() => setShowImageModal(false)}
                                     className="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold p-1 bg-slate-900 rounded-lg w-8 h-8 flex items-center justify-center border border-slate-800 transition-colors"
                                 >
                                     ✕
                                 </button>
-                                
+
                                 <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 font-jua mb-4 tracking-wide text-center">
                                     🏎️ {selectedImageName} 실물 보기
                                 </h3>
-                                
+
                                 <div className="w-full overflow-hidden rounded-2xl border border-indigo-500/30 bg-slate-900 shadow-inner mb-4 relative group">
-                                    <img 
-                                        src={selectedImageUrl} 
-                                        alt={selectedImageName} 
-                                        className="w-full h-auto max-h-[60vh] object-contain mx-auto rounded-2xl" 
+                                    <img
+                                        src={selectedImageUrl}
+                                        alt={selectedImageName}
+                                        className="w-full h-auto max-h-[60vh] object-contain mx-auto rounded-2xl"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-60"></div>
                                 </div>
@@ -1830,7 +1872,7 @@
                                     );
                                 })()}
 
-                                <button 
+                                <button
                                     onClick={() => setShowImageModal(false)}
                                     className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold py-2.5 px-8 rounded-xl transition-all active:scale-95 text-sm font-jua shadow-lg shadow-indigo-500/20"
                                 >
@@ -1902,21 +1944,21 @@
                                 const aLvl = a.level || 1;
                                 const bLvl = b.level || 1;
                                 if (bLvl !== aLvl) return bLvl - aLvl;
-                                
+
                                 const aExp = a.totalExp || 0;
                                 const bExp = b.totalExp || 0;
                                 if (bExp !== aExp) return bExp - aExp;
-                                
+
                                 return (a.id || '').localeCompare(b.id || '');
                             } else { // 'speed'
                                 const aSpeed = a.maxSpeed || 200;
                                 const bSpeed = b.maxSpeed || 200;
                                 if (bSpeed !== aSpeed) return bSpeed - aSpeed;
-                                
+
                                 const aLvl = a.level || 1;
                                 const bLvl = b.level || 1;
                                 if (bLvl !== aLvl) return bLvl - aLvl;
-                                
+
                                 return (a.id || '').localeCompare(b.id || '');
                             }
                         });
@@ -1929,7 +1971,7 @@
                                         <h2 className="text-2xl font-bold text-yellow-400 flex items-center gap-2">
                                             🏆 명예의 전당 (실시간 랭킹)
                                         </h2>
-                                        <button 
+                                        <button
                                             onClick={() => setShowRankingModal(false)}
                                             className="text-slate-400 hover:text-white text-xl font-bold p-1 bg-slate-900 rounded-lg w-8 h-8 flex items-center justify-center transition-colors"
                                         >
@@ -1941,21 +1983,19 @@
                                     <div className="flex gap-2 mb-4 bg-slate-900 p-1 rounded-xl border border-slate-800">
                                         <button
                                             onClick={() => setRankingTab('level')}
-                                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1 ${
-                                                rankingTab === 'level'
+                                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1 ${rankingTab === 'level'
                                                     ? 'bg-yellow-400 text-yellow-950 font-extrabold shadow-md'
                                                     : 'text-slate-400 hover:text-white'
-                                            }`}
+                                                }`}
                                         >
                                             ⭐ 레벨 순
                                         </button>
                                         <button
                                             onClick={() => setRankingTab('speed')}
-                                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1 ${
-                                                rankingTab === 'speed'
+                                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1 ${rankingTab === 'speed'
                                                     ? 'bg-yellow-400 text-yellow-950 font-extrabold shadow-md'
                                                     : 'text-slate-400 hover:text-white'
-                                            }`}
+                                                }`}
                                         >
                                             🔥 최고속도 순
                                         </button>
@@ -1977,7 +2017,7 @@
                                             {sortedRanking.map((item, index) => {
                                                 const isSelf = item.id === currentUser;
                                                 const rankNum = index + 1;
-                                                
+
                                                 // 1, 2, 3위 메달 및 로우 그라데이션
                                                 let rowStyle = "bg-slate-900/60 border border-slate-800 hover:border-slate-700";
                                                 let badge = null;
@@ -2003,10 +2043,10 @@
                                                 }
 
                                                 const carName = item.activeCarName || CAR_DATA[item.activeCar || 'lv1']?.name || '연습 차량';
-                                                
+
                                                 return (
-                                                    <div 
-                                                        key={item.id} 
+                                                    <div
+                                                        key={item.id}
                                                         className={`flex items-center justify-between p-3.5 rounded-2xl transition-all ${rowStyle}`}
                                                     >
                                                         <div className="flex items-center gap-3 min-w-0">
@@ -2060,11 +2100,10 @@
                                                                     <button
                                                                         onClick={() => handleStartBattle(item)}
                                                                         disabled={isCompleted}
-                                                                        className={`ml-1.5 px-2.5 py-1.5 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center gap-0.5 ${
-                                                                            isCompleted
+                                                                        className={`ml-1.5 px-2.5 py-1.5 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center gap-0.5 ${isCompleted
                                                                                 ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed text-[10px]'
                                                                                 : 'bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-extrabold shadow-md transform hover:scale-105'
-                                                                        }`}
+                                                                            }`}
                                                                     >
                                                                         {isCompleted ? (
                                                                             <>
@@ -2088,7 +2127,7 @@
                                     {/* Footer */}
                                     <div className="mt-5 pt-3 border-t border-slate-900 flex justify-between items-center text-[10px] text-slate-500 font-semibold pl-1">
                                         <span>🏁 실시간 데이터 동기화 완료</span>
-                                        <button 
+                                        <button
                                             onClick={() => setShowRankingModal(false)}
                                             className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-bold py-2 px-6 rounded-xl transition-all active:scale-95 text-xs"
                                         >
@@ -2133,8 +2172,8 @@
                             <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn font-jua">
                                 <div className="bg-slate-900 border-2 border-indigo-500/60 shadow-[0_0_40px_rgba(99,102,241,0.3)] rounded-3xl p-6 sm:p-8 max-w-xl w-full flex flex-col items-center relative overflow-hidden text-white animate-fadeIn">
                                     {/* Neon Grid Effect */}
-                                    <div className="absolute inset-0 opacity-5 pointer-events-none" 
-                                         style={{backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '15px 15px'}}></div>
+                                    <div className="absolute inset-0 opacity-5 pointer-events-none"
+                                        style={{ backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '15px 15px' }}></div>
 
                                     {/* Header */}
                                     <h2 className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 mb-2 tracking-wide drop-shadow-sm flex items-center gap-1.5 z-10">
@@ -2194,27 +2233,27 @@
                                                     <circle cx="100" cy="100" r="75" fill="none" stroke="#1e293b" strokeWidth="12" />
                                                     {/* Central Dashed Track Divider */}
                                                     <circle cx="100" cy="100" r="75" fill="none" stroke="#334155" strokeWidth="1" strokeDasharray="3 3" />
-                                                    
+
                                                     {/* Start / Finish Line */}
                                                     <line x1="100" y1="18" x2="100" y2="32" stroke="#ef4444" strokeWidth="2.5" />
 
                                                     {/* Player Car Node */}
-                                                    <circle 
-                                                        cx={pPos.x} 
-                                                        cy={pPos.y} 
-                                                        r="6" 
-                                                        fill="#3b82f6" 
-                                                        className="transition-all duration-100 animate-pulse" 
+                                                    <circle
+                                                        cx={pPos.x}
+                                                        cy={pPos.y}
+                                                        r="6"
+                                                        fill="#3b82f6"
+                                                        className="animate-pulse"
                                                         style={{ filter: 'drop-shadow(0 0 6px #3b82f6)' }}
                                                     />
-                                                    
+
                                                     {/* Opponent Car Node */}
-                                                    <circle 
-                                                        cx={oPos.x} 
-                                                        cy={oPos.y} 
-                                                        r="6" 
-                                                        fill="#f97316" 
-                                                        className="transition-all duration-100 animate-pulse" 
+                                                    <circle
+                                                        cx={oPos.x}
+                                                        cy={oPos.y}
+                                                        r="6"
+                                                        fill="#f97316"
+                                                        className="animate-pulse"
                                                         style={{ filter: 'drop-shadow(0 0 6px #f97316)' }}
                                                     />
                                                 </svg>
@@ -2274,7 +2313,7 @@
                                                         아쉬운 패배 😢
                                                     </h3>
                                                     <p className="text-slate-400 text-xs mt-1 break-keep leading-relaxed font-semibold">
-                                                        상대방 차량의 기록이 더 빠릅니다.<br/>부품을 튜닝하거나 신차를 해금하여 재도전하세요!
+                                                        상대방 차량의 기록이 더 빠릅니다.<br />부품을 튜닝하거나 신차를 해금하여 재도전하세요!
                                                     </p>
                                                 </div>
                                             )}
@@ -2292,7 +2331,7 @@
                                                     <div className="text-slate-500 font-bold">상대 기록</div>
                                                     <div className="text-orange-400 font-mono font-extrabold text-base mt-0.5">
                                                         {formatLapTime(calcPhysicsTime(
-                                                            battleOpponent?.maxSpeed || 200, 
+                                                            battleOpponent?.maxSpeed || 200,
                                                             getAccelVal(battleOpponent?.activeCar || 'lv1', battleOpponent?.parts || { engine: 0, mission: 0, tire: 0, brake: 0 })
                                                         ))}
                                                     </div>
@@ -2321,4 +2360,5 @@
         root.render(<App />);
     </script>
 </body>
+
 </html>
