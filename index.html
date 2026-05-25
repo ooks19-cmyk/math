@@ -80,6 +80,7 @@
                 image: 'car/lv1.jpg',
                 baseSpeed: 180,
                 baseAccel: 4.5,
+                reqLevel: 0,
                 desc: '레이싱의 기본을 다지기 위한 조그만 연습 차량'
             },
             gv70: {
@@ -88,6 +89,7 @@
                 image: 'car/gv70.jpg',
                 baseSpeed: 215,
                 baseAccel: 8.2,
+                reqLevel: 2,
                 desc: '묵직한 가속감과 안정성을 겸비한 럭셔리 SUV'
             },
             k5: {
@@ -96,6 +98,7 @@
                 image: 'car/k5.jpg',
                 baseSpeed: 225,
                 baseAccel: 7.4,
+                reqLevel: 2,
                 desc: '스포티한 주행감과 민첩한 코너링의 스포츠 세단'
             },
             ct: {
@@ -104,6 +107,7 @@
                 image: 'car/ct.jpg',
                 baseSpeed: 250,
                 baseAccel: 9.7,
+                reqLevel: 10,
                 desc: '단단한 장갑과 폭발적인 초반 토크의 미래형 트럭'
             },
             my: {
@@ -112,6 +116,7 @@
                 image: 'car/my.jpg',
                 baseSpeed: 235,
                 baseAccel: 8.8,
+                reqLevel: 0,
                 desc: '전기차 특유의 부드럽고 균형 잡힌 친환경 SUV'
             },
             carnival: {
@@ -120,6 +125,7 @@
                 image: 'car/carnival.jpg',
                 baseSpeed: 200,
                 baseAccel: 6.2,
+                reqLevel: 0,
                 desc: '넓고 안락한 공간을 자랑하는 대한민국 대표 패밀리 미니밴'
             },
             sorento: {
@@ -128,6 +134,7 @@
                 image: 'car/sorento.jpg',
                 baseSpeed: 208,
                 baseAccel: 6.8,
+                reqLevel: 0,
                 desc: '강인한 디자인과 뛰어난 공간 활용성의 대표 패밀리 SUV'
             },
             macan: {
@@ -136,6 +143,7 @@
                 image: 'car/macan.jpg',
                 baseSpeed: 238,
                 baseAccel: 8.5,
+                reqLevel: 0,
                 desc: '포르쉐의 스포츠카 DNA를 그대로 이식한 럭셔리 스포츠 SUV'
             },
             urus: {
@@ -144,7 +152,26 @@
                 image: 'car/urus.jpg',
                 baseSpeed: 265,
                 baseAccel: 9.9,
+                reqLevel: 20,
                 desc: '슈퍼카의 성능과 SUV의 실용성을 결합한 하이퍼 SUV'
+            },
+            nsx: {
+                id: 'nsx',
+                name: '혼다 NSX',
+                image: 'car/honda_nsx.jpg',
+                baseSpeed: 280,
+                baseAccel: 10.0,
+                reqLevel: 25,
+                desc: '혼다의 첨단 하이브리드 기술과 미드쉽 레이아웃이 융합된 친환경 슈퍼카'
+            },
+            supra: {
+                id: 'supra',
+                name: '토요타 수프라',
+                image: 'car/toyota_supra.webp',
+                baseSpeed: 295,
+                baseAccel: 10.0,
+                reqLevel: 30,
+                desc: '강력한 터보 엔진과 우수한 밸런스로 레이서들의 사랑을 받는 튜닝의 대명사'
             }
         };
 
@@ -544,19 +571,23 @@
             );
         };
 
-        const CarAvatar = ({ activeCar }) => {
+        const CarAvatar = ({ activeCar, onClick }) => {
             const car = CAR_DATA[activeCar] || CAR_DATA.lv1;
             return (
-                <div className="relative w-48 sm:w-64 animate-float drop-shadow-2xl group flex flex-col items-center">
-                    <div className="relative overflow-hidden rounded-2xl border-4 border-slate-700 shadow-xl bg-slate-900 w-full h-32 sm:h-40">
+                <div 
+                    onClick={onClick}
+                    className="relative w-48 sm:w-64 animate-float drop-shadow-2xl group flex flex-col items-center cursor-pointer"
+                >
+                    <div className="relative overflow-hidden rounded-2xl border-4 border-slate-700 shadow-xl bg-slate-900 w-full h-32 sm:h-40 animate-pulse hover:animate-none">
                         <img 
                             src={car.image} 
                             alt={car.name} 
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60"></div>
-                        <div className="absolute bottom-2 left-3 right-3 text-left">
+                        <div className="absolute bottom-2 left-3 right-3 text-left flex justify-between items-center w-[90%]">
                             <span className="text-sm font-bold text-yellow-400 drop-shadow-md">{car.name}</span>
+                            <span className="text-[10px] text-indigo-300 bg-indigo-950/80 px-2 py-0.5 rounded-full border border-indigo-500/30">🔍 크게 보기</span>
                         </div>
                     </div>
                 </div>
@@ -803,8 +834,13 @@
             const [rankingData, setRankingData] = useState([]);
             const [rankingLoading, setRankingLoading] = useState(false);
 
-            // [신규] 일일 가상 대결 및 배틀 상태들
-            const [lastMatchDate, setLastMatchDate] = useState(null); // 최근 매치 일자 (YYYY-MM-DD)
+            // [신규] 자동차 이미지 확대 제어 상태
+            const [showImageModal, setShowImageModal] = useState(false);
+            const [selectedImageUrl, setSelectedImageUrl] = useState("");
+            const [selectedImageName, setSelectedImageName] = useState("");
+
+            // [신규] 일일 가상 대결 및 배틀 상태들 (상대 ID별 맵 고도화)
+            const [lastMatchMap, setLastMatchMap] = useState({}); // { opponentId: YYYY-MM-DD }
             const [showBattleModal, setShowBattleModal] = useState(false);
             const [battleOpponent, setBattleOpponent] = useState(null);
             const [battleState, setBattleState] = useState('ready'); // 'ready' | 'racing' | 'finished'
@@ -851,7 +887,13 @@
                         setActiveCar(userData.activeCar || 'lv1');
                         setHasSelectedInitialCar(userData.hasSelectedInitialCar || false);
                         setHasSeenLv2Popup(userData.hasSeenLv2Popup || false);
-                        setLastMatchDate(userData.lastMatchDate || null); // 일일 대결 기록 복원
+                        
+                        // 구버전 및 단일 데이터 형식에 대한 유연한 하이브리드 복원 안전망
+                        let matchMap = {};
+                        if (userData.lastMatchMap) {
+                            matchMap = typeof userData.lastMatchMap === 'string' ? {} : userData.lastMatchMap;
+                        }
+                        setLastMatchMap(matchMap);
                     }
                 } catch (error) {
                     console.error("세션 복구 에러:", error);
@@ -872,7 +914,12 @@
                 setActiveCar(userData.activeCar || 'lv1');
                 setHasSelectedInitialCar(userData.hasSelectedInitialCar || false);
                 setHasSeenLv2Popup(userData.hasSeenLv2Popup || false);
-                setLastMatchDate(userData.lastMatchDate || null); // 일일 대결 기록 복원
+                
+                let matchMap = {};
+                if (userData.lastMatchMap) {
+                    matchMap = typeof userData.lastMatchMap === 'string' ? {} : userData.lastMatchMap;
+                }
+                setLastMatchMap(matchMap);
             };
 
             // 로그아웃 핸들러
@@ -888,7 +935,7 @@
                 setActiveCar('lv1');
                 setHasSelectedInitialCar(false);
                 setHasSeenLv2Popup(false);
-                setLastMatchDate(null); // 대결 기록 초기화
+                setLastMatchMap({}); // 대결 기록 초기화
             };
 
             // 랭킹 열기 핸들러
@@ -906,7 +953,7 @@
             };
 
             // 클라우드/모의 DB 세이브 헬퍼 함수
-            const saveProgress = (newLevel, newExp, newParts, newPoints, newOwned = ownedCars, newActive = activeCar, newSelected = hasSelectedInitialCar, newSeen = hasSeenLv2Popup, newLastMatchDate = lastMatchDate) => {
+            const saveProgress = (newLevel, newExp, newParts, newPoints, newOwned = ownedCars, newActive = activeCar, newSelected = hasSelectedInitialCar, newSeen = hasSeenLv2Popup, newLastMatchMap = lastMatchMap) => {
                 const userId = currentUser || localStorage.getItem('racer-current-user');
                 if (!userId) return;
                 try {
@@ -923,7 +970,7 @@
                         hasSeenLv2Popup: newSeen,
                         maxSpeed: speed,
                         activeCarName: carName,
-                        lastMatchDate: newLastMatchDate
+                        lastMatchMap: newLastMatchMap
                     };
                     dbService.saveProgress(userId, dataToSave);
                 } catch (error) {
@@ -939,8 +986,8 @@
             // 배틀 시작 핸들러
             const handleStartBattle = (opponent) => {
                 const todayStr = new Date().toISOString().split('T')[0];
-                if (lastMatchDate === todayStr) {
-                    alert("⚠️ 오늘의 서킷 배틀은 이미 마쳤습니다! 내일 다시 도전하세요!");
+                if (lastMatchMap && lastMatchMap[opponent.id] === todayStr) {
+                    alert(`⚠️ ${opponent.id} 플레이어와는 오늘의 배틀을 이미 마쳤습니다! 다른 상대와 경쟁하거나 내일 도전하세요!`);
                     return;
                 }
 
@@ -1064,7 +1111,11 @@
 
                         // 보상 및 잠금 데이터 업데이트
                         const todayStr = new Date().toISOString().split('T')[0];
-                        setLastMatchDate(todayStr);
+                        const nextMatchMap = {
+                            ...lastMatchMap,
+                            [battleOpponent.id]: todayStr
+                        };
+                        setLastMatchMap(nextMatchMap);
 
                         let nextPoints = upgradePoints;
                         if (isWin) {
@@ -1073,7 +1124,7 @@
                         }
 
                         // 저장 동기화
-                        saveProgress(level, totalExp, parts, nextPoints, ownedCars, activeCar, hasSelectedInitialCar, hasSeenLv2Popup, todayStr);
+                        saveProgress(level, totalExp, parts, nextPoints, ownedCars, activeCar, hasSelectedInitialCar, hasSeenLv2Popup, nextMatchMap);
                         
                         if (isWin) {
                             // 대축하 confetti 분사
@@ -1379,14 +1430,22 @@
                                     </div>
                                 </div>
                                 <RacerAvatar level={level} />
-                                <CarAvatar activeCar={activeCar} />
+                                <CarAvatar 
+                                    activeCar={activeCar} 
+                                    onClick={() => {
+                                        const car = CAR_DATA[activeCar] || CAR_DATA.lv1;
+                                        setSelectedImageUrl(car.image);
+                                        setSelectedImageName(car.name);
+                                        setShowImageModal(true);
+                                    }}
+                                />
                             </div>
 
                             {/* Owned Garage UI */}
                             {ownedCars.length > 1 && (
                                 <div className="w-full bg-slate-900/50 rounded-xl p-3 mb-4 border border-slate-700/80 shadow-md z-10 text-center">
                                     <h3 className="text-yellow-400 font-bold text-xs mb-2 flex items-center justify-center gap-1">🚗 차고 (차량 선택)</h3>
-                                    <div className="flex flex-wrap gap-1.5 justify-center">
+                                    <div className="flex flex-wrap gap-2.5 justify-center">
                                         {ownedCars.map(carId => {
                                             const car = CAR_DATA[carId];
                                             const isActive = activeCar === carId;
@@ -1397,13 +1456,32 @@
                                                         setActiveCar(carId);
                                                         saveProgress(level, totalExp, parts, upgradePoints, ownedCars, carId, hasSelectedInitialCar, hasSeenLv2Popup);
                                                     }}
-                                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                                                    className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 select-none ${
                                                         isActive
                                                             ? 'bg-yellow-400 text-yellow-950 border-yellow-400 shadow-md scale-105'
                                                             : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500'
                                                     }`}
                                                 >
-                                                    {car?.name}
+                                                    {car?.image && (
+                                                        <div 
+                                                            className="relative w-5 h-5 rounded-md overflow-hidden border border-slate-600/50 cursor-zoom-in group/thumb"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSelectedImageUrl(car.image);
+                                                                setSelectedImageName(car.name);
+                                                                setShowImageModal(true);
+                                                            }}
+                                                            title="사진 크게 보기"
+                                                        >
+                                                            <img 
+                                                                src={car.image} 
+                                                                alt={car.name} 
+                                                                className="w-full h-full object-cover transition-transform group-hover/thumb:scale-125"
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/10 group-hover/thumb:bg-transparent transition-colors"></div>
+                                                        </div>
+                                                    )}
+                                                    <span>{car?.name}</span>
                                                 </button>
                                             );
                                         })}
@@ -1546,7 +1624,21 @@
                                                     saveProgress(level, totalExp, parts, upgradePoints, newOwned, carId, true, hasSeenLv2Popup);
                                                 }}
                                             >
-                                                <img src={car.image} alt={car.name} className="w-full h-28 object-cover rounded-xl border border-slate-700 mb-3" />
+                                                <div className="relative w-full h-28 mb-3 overflow-hidden rounded-xl border border-slate-700 group/sel">
+                                                     <img 
+                                                         src={car.image} 
+                                                         alt={car.name} 
+                                                         className="w-full h-full object-cover transition-transform duration-500 group-hover/sel:scale-110 cursor-zoom-in"
+                                                         onClick={(e) => {
+                                                             e.stopPropagation(); // 카드 선택 방지
+                                                             setSelectedImageUrl(car.image);
+                                                             setSelectedImageName(car.name);
+                                                             setShowImageModal(true);
+                                                         }}
+                                                         title="사진 크게 보기"
+                                                     />
+                                                     <span className="absolute bottom-1 right-1 text-[8px] bg-slate-950/80 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/20">🔍 확대</span>
+                                                 </div>
                                                 <h3 className="text-lg font-bold text-white mb-1">{car.name}</h3>
                                                 <p className="text-[10px] text-slate-400 mb-3 line-clamp-2 h-8 text-center">{car.desc}</p>
                                                 
@@ -1574,8 +1666,7 @@
                             </div>
                         </div>
                     )}
-
-                    {/* Shop Modal */}
+                               {/* Shop Modal */}
                     {showShopModal && (
                         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn">
                             <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 max-w-xl w-full shadow-2xl flex flex-col max-h-[90vh]">
@@ -1599,12 +1690,12 @@
                                         .map(carId => {
                                             const car = CAR_DATA[carId];
                                             
-                                            // 차량별 레벨 요구조건 판별
-                                            const reqLevel = carId === 'ct' ? 10 : (carId === 'urus' ? 20 : 0);
+                                            // 차량별 레벨 요구조건 판별 (CAR_DATA의 reqLevel 동적 참조)
+                                            const reqLevel = car.reqLevel || 0;
                                             const isLevelMet = level >= reqLevel;
                                             const canBuy = upgradePoints >= 5 && isLevelMet;
 
-                                            return (
+                                             return (
                                                 <div 
                                                     key={carId}
                                                     className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center shadow-md relative group"
@@ -1620,7 +1711,20 @@
                                                         </span>
                                                     )}
 
-                                                    <img src={car.image} alt={car.name} className="w-full h-24 object-cover rounded-xl border border-slate-700 mb-2" />
+                                                    <div className="relative w-full h-24 mb-2 overflow-hidden rounded-xl border border-slate-700 group/shop">
+                                                        <img 
+                                                            src={car.image} 
+                                                            alt={car.name} 
+                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover/shop:scale-110 cursor-zoom-in" 
+                                                            onClick={() => {
+                                                                setSelectedImageUrl(car.image);
+                                                                setSelectedImageName(car.name);
+                                                                setShowImageModal(true);
+                                                            }}
+                                                            title="사진 크게 보기"
+                                                        />
+                                                        <span className="absolute bottom-1 right-1 text-[8px] bg-slate-950/80 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/20">🔍 확대</span>
+                                                    </div>
                                                     <h3 className="text-base font-bold text-white mb-0.5">{car.name}</h3>
                                                     <p className="text-[9px] text-slate-400 mb-3 text-center line-clamp-2 h-6">{car.desc}</p>
                                                     
@@ -1676,6 +1780,62 @@
                                             );
                                         })}
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 자동차 이미지 확대 뷰어 모달 */}
+                    {showImageModal && (
+                        <div 
+                            className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fadeIn"
+                            onClick={() => setShowImageModal(false)}
+                        >
+                            <div 
+                                className="bg-slate-950/95 border-2 border-indigo-500/60 rounded-3xl p-6 max-w-2xl w-full shadow-[0_0_45px_rgba(99,102,241,0.55)] flex flex-col items-center relative"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <button 
+                                    onClick={() => setShowImageModal(false)}
+                                    className="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold p-1 bg-slate-900 rounded-lg w-8 h-8 flex items-center justify-center border border-slate-800 transition-colors"
+                                >
+                                    ✕
+                                </button>
+                                
+                                <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 font-jua mb-4 tracking-wide text-center">
+                                    🏎️ {selectedImageName} 실물 보기
+                                </h3>
+                                
+                                <div className="w-full overflow-hidden rounded-2xl border border-indigo-500/30 bg-slate-900 shadow-inner mb-4 relative group">
+                                    <img 
+                                        src={selectedImageUrl} 
+                                        alt={selectedImageName} 
+                                        className="w-full h-auto max-h-[60vh] object-contain mx-auto rounded-2xl" 
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-60"></div>
+                                </div>
+
+                                {(() => {
+                                    const matchedCar = Object.values(CAR_DATA).find(c => c.name === selectedImageName);
+                                    if (!matchedCar) return null;
+                                    return (
+                                        <div className="w-full bg-slate-900/60 border border-slate-800 rounded-xl p-4 text-center mb-5 max-w-lg">
+                                            <p className="text-slate-300 text-xs sm:text-sm font-medium leading-relaxed break-keep font-jua">
+                                                "{matchedCar.desc}"
+                                            </p>
+                                            <div className="flex justify-center gap-6 mt-3 text-[11px] font-bold">
+                                                <span className="text-red-400">⚡ 최고속도: {matchedCar.baseSpeed} km/h</span>
+                                                <span className="text-yellow-400">🔥 가속도: {matchedCar.baseAccel} / 10</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
+                                <button 
+                                    onClick={() => setShowImageModal(false)}
+                                    className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold py-2.5 px-8 rounded-xl transition-all active:scale-95 text-sm font-jua shadow-lg shadow-indigo-500/20"
+                                >
+                                    화면 닫기
+                                </button>
                             </div>
                         </div>
                     )}
@@ -1895,7 +2055,7 @@
                                                             {/* 일일 대결하기 버튼: 본인 제외 */}
                                                             {!isSelf && (() => {
                                                                 const todayStr = new Date().toISOString().split('T')[0];
-                                                                const isCompleted = lastMatchDate === todayStr;
+                                                                const isCompleted = !!(lastMatchMap && lastMatchMap[item.id] === todayStr);
                                                                 return (
                                                                     <button
                                                                         onClick={() => handleStartBattle(item)}
