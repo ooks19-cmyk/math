@@ -194,6 +194,42 @@
                 baseAccel: 10.0,
                 reqLevel: 30,
                 desc: '강력한 터보 엔진과 우수한 밸런스로 레이서들의 사랑을 받는 튜닝의 대명사'
+            },
+            bmw_m4: {
+                id: 'bmw_m4',
+                name: 'BMW M4',
+                image: 'car/bmw_m4.jpg',
+                baseSpeed: 310,
+                baseAccel: 10.0,
+                reqLevel: 35,
+                desc: '역동적인 디자인과 트랙 중심의 강력한 드라이빙 퍼포먼스를 선사하는 고성능 쿠페'
+            },
+            musteng: {
+                id: 'musteng',
+                name: '포드 뉴 머스탱',
+                image: 'car/ford_new musteng.jpg',
+                baseSpeed: 325,
+                baseAccel: 10.0,
+                reqLevel: 40,
+                desc: '아메리칸 머슬카의 전설, 웅장한 배기음과 폭발적인 후륜 퍼포먼스의 상징'
+            },
+            benz_s: {
+                id: 'benz_s',
+                name: '벤츠 S클래스',
+                image: 'car/benz_s class.png',
+                baseSpeed: 340,
+                baseAccel: 10.0,
+                reqLevel: 45,
+                desc: '플래그십 세단의 정석, 품격 높은 승차감 속에 숨겨진 고요하고 강력한 퍼포먼스'
+            },
+            audi_r8: {
+                id: 'audi_r8',
+                name: '아우디 R8',
+                image: 'car/audi_r8.jpg',
+                baseSpeed: 360,
+                baseAccel: 10.0,
+                reqLevel: 50,
+                desc: 'V10 미드쉽 엔진을 품은 아우디 모터스포츠 기술력의 정수, 궁극의 하이퍼카'
             }
         };
 
@@ -408,7 +444,7 @@
         dbService.init();
 
         // 문제 생성 유틸리티 함수
-        const generateProblem = (isToddler = false, isAdult = false) => {
+        const generateProblem = (isToddler = false, isAdult = false, currentLevel = 1) => {
             if (isToddler) {
                 // 유아모드: 1 ~ 5 사이의 과일 개수 세기 방식
                 const fruits = ['🍎', '🍌', '🍇', '🍓', '🍊'];
@@ -441,6 +477,88 @@
                         id: Math.random().toString(36).substr(2, 9),
                         type: 'adult',
                         numbers: [finalA, finalB],
+                        ops: [op],
+                        answer: finalAnswer
+                    };
+                } else {
+                    // 세자리 수 3개 혼합 연산
+                    const a = Math.floor(Math.random() * 900) + 100;
+                    const b = Math.floor(Math.random() * 400) + 100;
+                    const c = Math.floor(Math.random() * 400) + 100;
+                    const op1 = Math.random() > 0.5 ? '+' : '-';
+                    const op2 = Math.random() > 0.5 ? '+' : '-';
+
+                    let finalA = a;
+                    let finalB = b;
+                    if (op1 === '-' && a < b) {
+                        finalA = b + 150;
+                    }
+                    let temp = op1 === '+' ? finalA + finalB : finalA - finalB;
+
+                    let finalC = c;
+                    if (op2 === '-' && temp < c) {
+                        finalC = Math.floor(temp / 2) + 1;
+                    }
+                    const answer = op2 === '+' ? temp + finalC : temp - finalC;
+
+                    return {
+                        id: Math.random().toString(36).substr(2, 9),
+                        type: 'adult_3',
+                        numbers: [finalA, finalB, finalC],
+                        ops: [op1, op2],
+                        answer: answer
+                    };
+                }
+            }
+
+            // [신규] 레벨 40 이상 고난이도 문제 출제 분기
+            if (currentLevel >= 40) {
+                const type = Math.floor(Math.random() * 3) + 1; // 1: 두자리 덧셈, 2: 두자리 뺄셈, 3: 구구단
+                if (type === 1) {
+                    // 받아올림이 있는 두자리 수 + 두자리 수
+                    let a, b;
+                    do {
+                        a = Math.floor(Math.random() * 80) + 10; // 10 ~ 89
+                        b = Math.floor(Math.random() * 80) + 10; // 10 ~ 89
+                    } while ((a % 10) + (b % 10) < 10); // 일의 자리 합이 10 이상이어야 받아올림 보장
+
+                    return {
+                        id: Math.random().toString(36).substr(2, 9),
+                        type: 'level40_add',
+                        numbers: [a, b],
+                        ops: ['+'],
+                        answer: a + b
+                    };
+                } else if (type === 2) {
+                    // 받아내림이 있는 두자리 수 - 두자리 수
+                    let a, b;
+                    do {
+                        a = Math.floor(Math.random() * 80) + 19; // 19 ~ 98
+                        b = Math.floor(Math.random() * 80) + 10; // 10 ~ 89
+                    } while (a <= b || (a % 10) >= (b % 10)); // a > b 여야 하고, 일의 자리 a < b 여야 받아내림 보장
+
+                    return {
+                        id: Math.random().toString(36).substr(2, 9),
+                        type: 'level40_sub',
+                        numbers: [a, b],
+                        ops: ['-'],
+                        answer: a - b
+                    };
+                } else {
+                    // 구구단 (한자리 수 곱셈)
+                    const a = Math.floor(Math.random() * 8) + 2; // 2 ~ 9
+                    const b = Math.floor(Math.random() * 9) + 1; // 1 ~ 9
+                    return {
+                        id: Math.random().toString(36).substr(2, 9),
+                        type: 'level40_mul',
+                        numbers: [a, b],
+                        ops: ['×'],
+                        answer: a * b
+                    };
+                }
+            }
+
+            const type = Math.floor(Math.random() * 3) + 1;                   numbers: [finalA, finalB],
                         ops: [op],
                         answer: finalAnswer
                     };
@@ -1248,7 +1366,7 @@
             const generateBatch = () => {
                 const isToddler = currentUser && currentUser.toLowerCase() === 'sea';
                 const isAdult = currentUser && currentUser.toLowerCase() === 'ooks12';
-                const newProbs = Array.from({ length: 5 }, () => generateProblem(isToddler, isAdult));
+                const newProbs = Array.from({ length: 5 }, () => generateProblem(isToddler, isAdult, level));
                 setProblems(newProbs);
                 setSolvedCount(0);
                 setShowNextStage(false);
