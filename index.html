@@ -100,8 +100,9 @@
                 id: 'lv1',
                 name: '초보 연습 차량',
                 image: 'car/lv1.jpg',
-                baseSpeed: 180,
-                baseAccel: 4.5,
+                baseSpeed: 150,
+                baseAccel: 3.0,
+                baseHandling: 3.0,
                 reqLevel: 0,
                 desc: '레이싱의 기본을 다지기 위한 조그만 연습 차량'
             },
@@ -109,8 +110,9 @@
                 id: 'gv70',
                 name: 'GV70',
                 image: 'car/gv70.jpg',
-                baseSpeed: 215,
-                baseAccel: 8.2,
+                baseSpeed: 180,
+                baseAccel: 4.0,
+                baseHandling: 4.2,
                 reqLevel: 2,
                 desc: '묵직한 가속감과 안정성을 겸비한 럭셔리 SUV'
             },
@@ -118,8 +120,9 @@
                 id: 'k5',
                 name: 'K5',
                 image: 'car/k5.jpg',
-                baseSpeed: 225,
-                baseAccel: 7.4,
+                baseSpeed: 190,
+                baseAccel: 4.2,
+                baseHandling: 4.5,
                 reqLevel: 2,
                 desc: '스포티한 주행감과 민첩한 코너링의 스포츠 세단'
             },
@@ -127,8 +130,9 @@
                 id: 'ct',
                 name: '사이버트럭',
                 image: 'car/ct.jpg',
-                baseSpeed: 250,
-                baseAccel: 9.7,
+                baseSpeed: 210,
+                baseAccel: 5.5,
+                baseHandling: 4.0,
                 reqLevel: 10,
                 desc: '단단한 장갑과 폭발적인 초반 토크의 미래형 트럭'
             },
@@ -136,8 +140,9 @@
                 id: 'my',
                 name: '모델 Y',
                 image: 'car/my.jpg',
-                baseSpeed: 235,
-                baseAccel: 8.8,
+                baseSpeed: 200,
+                baseAccel: 5.0,
+                baseHandling: 4.6,
                 reqLevel: 0,
                 desc: '전기차 특유의 부드럽고 균형 잡힌 친환경 SUV'
             },
@@ -145,8 +150,9 @@
                 id: 'carnival',
                 name: '카니발',
                 image: 'car/carnival.jpg',
-                baseSpeed: 200,
-                baseAccel: 6.2,
+                baseSpeed: 165,
+                baseAccel: 3.5,
+                baseHandling: 3.5,
                 reqLevel: 0,
                 desc: '넓고 안락한 공간을 자랑하는 대한민국 대표 패밀리 미니밴'
             },
@@ -154,8 +160,9 @@
                 id: 'sorento',
                 name: '쏘렌토',
                 image: 'car/sorento.jpg',
-                baseSpeed: 208,
-                baseAccel: 6.8,
+                baseSpeed: 172,
+                baseAccel: 3.8,
+                baseHandling: 3.8,
                 reqLevel: 0,
                 desc: '강인한 디자인과 뛰어난 공간 활용성의 대표 패밀리 SUV'
             },
@@ -163,8 +170,9 @@
                 id: 'macan',
                 name: '마칸',
                 image: 'car/macan.jpg',
-                baseSpeed: 238,
-                baseAccel: 8.5,
+                baseSpeed: 220,
+                baseAccel: 6.0,
+                baseHandling: 5.5,
                 reqLevel: 0,
                 desc: '포르쉐의 스포츠카 DNA를 그대로 이식한 럭셔리 스포츠 SUV'
             },
@@ -172,8 +180,9 @@
                 id: 'urus',
                 name: '우루스',
                 image: 'car/urus.jpg',
-                baseSpeed: 265,
-                baseAccel: 9.9,
+                baseSpeed: 250,
+                baseAccel: 7.0,
+                baseHandling: 6.5,
                 reqLevel: 20,
                 desc: '슈퍼카의 성능과 SUV의 실용성을 결합한 하이퍼 SUV'
             },
@@ -181,8 +190,9 @@
                 id: 'nsx',
                 name: '혼다 NSX',
                 image: 'car/honda_nsx.jpg',
-                baseSpeed: 280,
-                baseAccel: 10.0,
+                baseSpeed: 270,
+                baseAccel: 8.0,
+                baseHandling: 7.8,
                 reqLevel: 25,
                 desc: '혼다의 첨단 하이브리드 기술과 미드쉽 레이아웃이 융합된 친환경 슈퍼카'
             },
@@ -190,8 +200,9 @@
                 id: 'supra',
                 name: '토요타 수프라',
                 image: 'car/toyota_supra.webp',
-                baseSpeed: 295,
-                baseAccel: 10.0,
+                baseSpeed: 290,
+                baseAccel: 8.5,
+                baseHandling: 8.2,
                 reqLevel: 30,
                 desc: '강력한 터보 엔진과 우수한 밸런스로 레이서들의 사랑을 받는 튜닝의 대명사'
             },
@@ -200,35 +211,43 @@
                 name: 'BMW M4',
                 image: 'car/bmw_m4.jpg',
                 baseSpeed: 310,
-                baseAccel: 10.0,
+                baseAccel: 9.0,
+                baseHandling: 8.8,
                 reqLevel: 35,
+                cost: 5,
                 desc: '역동적인 디자인과 트랙 중심의 강력한 드라이빙 퍼포먼스를 선사하는 고성능 쿠페'
             },
             musteng: {
                 id: 'musteng',
                 name: '포드 뉴 머스탱',
                 image: 'car/ford_new musteng.jpg',
-                baseSpeed: 325,
-                baseAccel: 10.0,
+                baseSpeed: 330,
+                baseAccel: 9.5,
+                baseHandling: 8.5,
                 reqLevel: 40,
+                cost: 7,
                 desc: '아메리칸 머슬카의 전설, 웅장한 배기음과 폭발적인 후륜 퍼포먼스의 상징'
             },
             benz_s: {
                 id: 'benz_s',
                 name: '벤츠 S클래스',
                 image: 'car/benz_s class.png',
-                baseSpeed: 340,
+                baseSpeed: 350,
                 baseAccel: 10.0,
+                baseHandling: 9.2,
                 reqLevel: 45,
+                cost: 7,
                 desc: '플래그십 세단의 정석, 품격 높은 승차감 속에 숨겨진 고요하고 강력한 퍼포먼스'
             },
             audi_r8: {
                 id: 'audi_r8',
                 name: '아우디 R8',
                 image: 'car/audi_r8.jpg',
-                baseSpeed: 360,
-                baseAccel: 10.0,
+                baseSpeed: 380,
+                baseAccel: 11.0,
+                baseHandling: 10.0,
                 reqLevel: 50,
+                cost: 7,
                 desc: 'V10 미드쉽 엔진을 품은 아우디 모터스포츠 기술력의 정수, 궁극의 하이퍼카'
             }
         };
@@ -243,12 +262,20 @@
             return base + partBonus + balanceBonus;
         };
 
-        // 가속도 연산 순수 함수
+        // 가속도 연산 순수 함수 (무제한)
         const getAccelVal = (carId, partsVal) => {
             const car = CAR_DATA[carId] || CAR_DATA.lv1;
             const base = car.baseAccel;
             const upgradeBonus = (partsVal.engine * 0.15) + (partsVal.mission * 0.1) + (partsVal.tire * 0.1);
-            return Math.min(10, parseFloat((base + upgradeBonus).toFixed(1)));
+            return parseFloat((base + upgradeBonus).toFixed(2));
+        };
+
+        // 핸들링 연산 순수 함수
+        const getHandlingVal = (carId, partsVal) => {
+            const car = CAR_DATA[carId] || CAR_DATA.lv1;
+            const base = car.baseHandling || 5.0;
+            const upgradeBonus = (partsVal.mission * 0.1) + (partsVal.tire * 0.15) + (partsVal.brake * 0.1);
+            return parseFloat((base + upgradeBonus).toFixed(2));
         };
 
         // ==========================================
@@ -558,40 +585,6 @@
                 }
             }
 
-            const type = Math.floor(Math.random() * 3) + 1;                   numbers: [finalA, finalB],
-                        ops: [op],
-                        answer: finalAnswer
-                    };
-                } else {
-                    // 세자리 수 3개 혼합 연산
-                    const a = Math.floor(Math.random() * 900) + 100;
-                    const b = Math.floor(Math.random() * 400) + 100;
-                    const c = Math.floor(Math.random() * 400) + 100;
-                    const op1 = Math.random() > 0.5 ? '+' : '-';
-                    const op2 = Math.random() > 0.5 ? '+' : '-';
-
-                    let finalA = a;
-                    let finalB = b;
-                    if (op1 === '-' && a < b) {
-                        finalA = b + 150;
-                    }
-                    let temp = op1 === '+' ? finalA + finalB : finalA - finalB;
-
-                    let finalC = c;
-                    if (op2 === '-' && temp < c) {
-                        finalC = Math.floor(temp / 2) + 1;
-                    }
-                    const answer = op2 === '+' ? temp + finalC : temp - finalC;
-
-                    return {
-                        id: Math.random().toString(36).substr(2, 9),
-                        type: 'adult_3',
-                        numbers: [finalA, finalB, finalC],
-                        ops: [op1, op2],
-                        answer: answer
-                    };
-                }
-            }
             const type = Math.floor(Math.random() * 3) + 1;
 
             if (type === 1) {
@@ -1116,6 +1109,8 @@
                 if (!userId) return;
                 try {
                     const speed = getSpeedVal(newActive, newParts);
+                    const accel = getAccelVal(newActive, newParts);
+                    const handling = getHandlingVal(newActive, newParts);
                     const carName = CAR_DATA[newActive]?.name || '';
                     const dataToSave = {
                         level: newLevel,
@@ -1127,6 +1122,8 @@
                         hasSelectedInitialCar: newSelected,
                         hasSeenLv2Popup: newSeen,
                         maxSpeed: speed,
+                        maxAccel: accel,
+                        maxHandling: handling,
                         activeCarName: carName,
                         lastMatchMap: newLastMatchMap
                     };
@@ -1309,6 +1306,16 @@
                 };
             }, []);
 
+            const handleCloseBattle = () => {
+                if (battleFrameId.current) {
+                    cancelAnimationFrame(battleFrameId.current);
+                    battleFrameId.current = null;
+                }
+                setShowBattleModal(false);
+            };
+
+            const levelEditJustOpened = useRef(false);
+
             const handleLevelTitleClick = () => {
                 if (clickTimeout.current) clearTimeout(clickTimeout.current);
 
@@ -1316,9 +1323,10 @@
                 if (newCount >= 5) {
                     const passwordInput = prompt("비밀번호를 입력해야 사용이 가능합니다.\n비밀번호를 입력해주세요:");
                     if (passwordInput === '2569') {
-                        setIsEditingLevel(true);
+                        levelEditJustOpened.current = true;
                         setEditLevelValue(level.toString());
-                    } else {
+                        setIsEditingLevel(true);
+                    } else if (passwordInput !== null) {
                         alert("비밀번호가 올바르지 않습니다!");
                     }
                     setLevelClickCount(0);
@@ -1332,6 +1340,11 @@
             };
 
             const handleLevelEditComplete = (e) => {
+                // blur 이벤트가 편집 직후에 발생하면 무시 (prompt 다이얼로그 포커스 복귀 문제 방지)
+                if (e.type === 'blur' && levelEditJustOpened.current) {
+                    levelEditJustOpened.current = false;
+                    return;
+                }
                 if (e.key === 'Enter' || e.type === 'blur') {
                     const newLevel = parseInt(editLevelValue, 10);
                     if (!isNaN(newLevel) && newLevel > 0) {
@@ -1477,13 +1490,18 @@
                 return base + partBonus + balanceBonus;
             };
 
-            // 가속도 계산 (0 ~ 10)
+            // 가속도 계산 (무제한)
             const calculateAccel = () => {
                 const car = CAR_DATA[activeCar] || CAR_DATA.lv1;
                 const base = car.baseAccel;
                 // 부품에 따른 가속 보너스
                 const upgradeBonus = (parts.engine * 0.15) + (parts.mission * 0.1) + (parts.tire * 0.1);
-                return Math.min(10, parseFloat((base + upgradeBonus).toFixed(1)));
+                return parseFloat((base + upgradeBonus).toFixed(2));
+            };
+
+            // 핸들링 계산 (무제한)
+            const calculateHandling = () => {
+                return getHandlingVal(activeCar, parts);
             };
 
             // 게이지 계산 (0 ~ 5)
@@ -1574,7 +1592,7 @@
                                     <h2
                                         className="text-yellow-400 text-2xl font-bold mb-1 cursor-pointer select-none transition-transform active:scale-95"
                                         onClick={handleLevelTitleClick}
-                                        title="5번 연속 클릭하면 레벨을 변경할 수 있습니다!"
+
                                     >
                                         LEVEL {level}
                                     </h2>
@@ -1589,7 +1607,10 @@
                                         <span>⚡ 최고속도 {calculateSpeed()}km/h</span>
                                     </div>
                                     <div className="text-[10px] text-yellow-300 font-bold">
-                                        🔥 가속도 {calculateAccel()}/10
+                                        🔥 가속도 {calculateAccel()}
+                                    </div>
+                                    <div className="text-[10px] text-green-300 font-bold">
+                                        🎯 핸들링 {calculateHandling()}
                                     </div>
                                 </div>
                                 <RacerAvatar level={level} />
@@ -1747,7 +1768,7 @@
                                 <div className="text-slate-200 text-sm mb-6 leading-relaxed text-left bg-slate-950/60 p-4 rounded-xl border border-slate-800 font-jua whitespace-pre-line break-keep font-semibold">
                                     {`레벨을 1 올릴때마다 포인트 1점이 주어집니다.
                                     포인트로는 부품을 업그레이드 할수있으며,
-                                    포인트 5점을 모으면 차를 추가로 살수있습니다.`}
+                                    포인트를 모아 상점에서 새 차를 살 수 있습니다. (일반 5P / 스포츠카 7P)`}
                                 </div>
                                 <button
                                     onClick={() => {
@@ -1810,15 +1831,22 @@
                                                         <span className="text-red-400">⚡ 최고속도</span>
                                                         <span className="text-white">{car.baseSpeed} km/h</span>
                                                     </div>
-                                                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                                        <div className="bg-red-500 h-full" style={{ width: `${(car.baseSpeed / 300) * 100}%` }}></div>
+                                                    <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                                                        <div className="bg-red-500 h-full" style={{ width: `${(car.baseSpeed / 400) * 100}%` }}></div>
                                                     </div>
                                                     <div className="flex justify-between font-bold text-[10px] mt-1">
                                                         <span className="text-yellow-400">🔥 가속도</span>
-                                                        <span className="text-white">{car.baseAccel} / 10</span>
+                                                        <span className="text-white">{car.baseAccel}</span>
                                                     </div>
-                                                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                                        <div className="bg-yellow-400 h-full" style={{ width: `${(car.baseAccel / 10) * 100}%` }}></div>
+                                                    <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                                                        <div className="bg-yellow-400 h-full" style={{ width: `${(car.baseAccel / 15) * 100}%` }}></div>
+                                                    </div>
+                                                    <div className="flex justify-between font-bold text-[10px] mt-1">
+                                                        <span className="text-green-400">🎯 핸들링</span>
+                                                        <span className="text-white">{car.baseHandling}</span>
+                                                    </div>
+                                                    <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                                                        <div className="bg-green-500 h-full" style={{ width: `${(car.baseHandling / 15) * 100}%` }}></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1828,12 +1856,13 @@
                             </div>
                         </div>
                     )}
+
                     {/* Shop Modal */}
                     {showShopModal && (
                         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn">
                             <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 max-w-xl w-full shadow-2xl flex flex-col max-h-[90vh]">
                                 <div className="flex justify-between items-center mb-2">
-                                    <h2 className="text-2xl font-bold text-indigo-400 font-jua">🏎️ 신차 상점</h2>
+                                    <h2 className="text-2xl font-bold text-indigo-400 font-jua">🏎️ 신차 거래 상점</h2>
                                     <button
                                         onClick={() => setShowShopModal(false)}
                                         className="text-slate-400 hover:text-white text-xl font-bold p-1 bg-slate-900 rounded-lg w-8 h-8 flex items-center justify-center"
@@ -1841,35 +1870,48 @@
                                         ✕
                                     </button>
                                 </div>
-                                <p className="text-slate-400 text-xs mb-3">보유한 튜닝 포인트를 소모하여 매력적인 스펙의 신차를 추가 구매하세요!</p>
+                                <p className="text-slate-400 text-xs mb-3">튜닝 포인트를 소모하여 신차를 구매하거나, 보유 차량을 판매하여 2포인트를 돌려받으세요!</p>
                                 <div className="text-xs font-bold bg-slate-900 text-indigo-300 px-3 py-2 rounded-lg border border-slate-800 mb-4 self-start">
-                                    보유 포인트: {upgradePoints} / 5
+                                    보유 포인트: {upgradePoints} P
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto pr-1">
                                     {Object.keys(CAR_DATA)
-                                        .filter(carId => !ownedCars.includes(carId))
+                                        .filter(carId => carId !== 'lv1') // 초보 연습 차량 판매/상점 리스트 노출 방지
                                         .map(carId => {
                                             const car = CAR_DATA[carId];
+                                            const isOwned = ownedCars.includes(carId);
+                                            const cost = car.cost || 5;
 
                                             // 차량별 레벨 요구조건 판별 (CAR_DATA의 reqLevel 동적 참조)
                                             const reqLevel = car.reqLevel || 0;
                                             const isLevelMet = level >= reqLevel;
-                                            const canBuy = upgradePoints >= 5 && isLevelMet;
+                                            
+                                            // 구매/판매 관련 상태값 연산
+                                            const canBuy = !isOwned && upgradePoints >= cost && isLevelMet;
+                                            const canSell = isOwned && ownedCars.length > 1; // 내 보유 차량이 2대 이상일 때만 판매 가능
 
-                                            return (
-                                                <div
+                                             return (
+                                                <div 
                                                     key={carId}
-                                                    className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center shadow-md relative group"
+                                                    className={`bg-slate-900 border rounded-2xl p-4 flex flex-col items-center shadow-md relative group transition-all ${
+                                                        isOwned ? 'border-indigo-500/40 bg-indigo-950/10' : 'border-slate-800'
+                                                    }`}
                                                 >
-                                                    {/* 레벨 제한 배지 */}
-                                                    {reqLevel > 0 && (
-                                                        <span className={`absolute top-2 right-2 font-bold text-[9px] px-2 py-0.5 rounded-full border ${isLevelMet
-                                                                ? 'bg-green-500/80 text-white border-green-400'
-                                                                : 'bg-red-500/90 text-white border-red-400 animate-pulse'
-                                                            }`}>
-                                                            {isLevelMet ? `Lv.${reqLevel} 해금 완료` : `Lv.${reqLevel} 필요`}
+                                                    {/* 레벨 제한 배지 / 보유 상태 배지 */}
+                                                    {isOwned ? (
+                                                        <span className="absolute top-2 right-2 font-bold text-[9px] px-2 py-0.5 rounded-full border bg-indigo-500/80 text-white border-indigo-400">
+                                                            보유 중 🚗
                                                         </span>
+                                                    ) : (
+                                                        reqLevel > 0 && (
+                                                            <span className={`absolute top-2 right-2 font-bold text-[9px] px-2 py-0.5 rounded-full border ${isLevelMet
+                                                                    ? 'bg-green-500/80 text-white border-green-400'
+                                                                    : 'bg-red-500/90 text-white border-red-400 animate-pulse'
+                                                                }`}>
+                                                                {isLevelMet ? `Lv.${reqLevel} 해금 완료` : `Lv.${reqLevel} 필요`}
+                                                            </span>
+                                                        )
                                                     )}
 
                                                     <div className="relative w-full h-24 mb-2 overflow-hidden rounded-xl border border-slate-700 group/shop">
@@ -1896,46 +1938,86 @@
                                                             <span className="text-white">{car.baseSpeed} km/h</span>
                                                         </div>
                                                         <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
-                                                            <div className="bg-red-500 h-full" style={{ width: `${(car.baseSpeed / 300) * 100}%` }}></div>
+                                                            <div className="bg-red-500 h-full" style={{ width: `${(car.baseSpeed / 400) * 100}%` }}></div>
                                                         </div>
                                                         <div className="flex justify-between font-bold text-[9px] mt-1">
                                                             <span className="text-yellow-400">🔥 가속도</span>
-                                                            <span className="text-white">{car.baseAccel} / 10</span>
+                                                            <span className="text-white">{car.baseAccel}</span>
                                                         </div>
                                                         <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
-                                                            <div className="bg-yellow-400 h-full" style={{ width: `${(car.baseAccel / 10) * 100}%` }}></div>
+                                                            <div className="bg-yellow-400 h-full" style={{ width: `${(car.baseAccel / 15) * 100}%` }}></div>
+                                                        </div>
+                                                        <div className="flex justify-between font-bold text-[9px] mt-1">
+                                                            <span className="text-green-400">🎯 핸들링</span>
+                                                            <span className="text-white">{car.baseHandling}</span>
+                                                        </div>
+                                                        <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                                                            <div className="bg-green-500 h-full" style={{ width: `${(car.baseHandling / 15) * 100}%` }}></div>
                                                         </div>
                                                     </div>
 
-                                                    <button
-                                                        onClick={() => {
-                                                            if (canBuy) {
-                                                                const newOwned = [...new Set([...ownedCars, carId])];
-                                                                const newPoints = upgradePoints - 5;
-                                                                setOwnedCars(newOwned);
-                                                                setActiveCar(carId);
-                                                                setUpgradePoints(newPoints);
-                                                                setShowShopModal(false);
-                                                                saveProgress(level, totalExp, parts, newPoints, newOwned, carId, hasSelectedInitialCar, hasSeenLv2Popup);
-                                                                confetti({
-                                                                    particleCount: 80,
-                                                                    spread: 70,
-                                                                    origin: { y: 0.6 }
-                                                                });
-                                                            }
-                                                        }}
-                                                        disabled={!canBuy}
-                                                        className={`w-full py-2 rounded-xl text-xs font-bold font-jua transition-all ${canBuy
-                                                                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white shadow-md active:scale-95'
-                                                                : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed text-[10px]'
-                                                            }`}
-                                                    >
-                                                        {!isLevelMet
-                                                            ? `Lv.${reqLevel} 해금 필요 (현재 Lv.${level})`
-                                                            : upgradePoints >= 5
-                                                                ? '구매하기 (5포인트 소모)'
-                                                                : '포인트 부족 (5포인트 필요)'}
-                                                    </button>
+                                                    {isOwned ? (
+                                                        <button
+                                                            onClick={() => {
+                                                                if (canSell) {
+                                                                    if (confirm(`정말로 [${car.name}] 차량을 판매하시겠습니까?\n판매 시 2포인트를 돌려받습니다.`)) {
+                                                                        const newOwned = ownedCars.filter(id => id !== carId);
+                                                                        const nextPoints = upgradePoints + 2;
+                                                                        setOwnedCars(newOwned);
+                                                                        
+                                                                        let nextActive = activeCar;
+                                                                        if (activeCar === carId) {
+                                                                            nextActive = newOwned[0] || 'lv1';
+                                                                            setActiveCar(nextActive);
+                                                                        }
+                                                                        
+                                                                        setUpgradePoints(nextPoints);
+                                                                        saveProgress(level, totalExp, parts, nextPoints, newOwned, nextActive, hasSelectedInitialCar, hasSeenLv2Popup);
+                                                                        
+                                                                        alert(`[${car.name}] 판매가 완료되었습니다. (+2포인트 적립 💰)`);
+                                                                    }
+                                                                }
+                                                            }}
+                                                            disabled={!canSell}
+                                                            className={`w-full py-2 rounded-xl text-xs font-bold font-jua transition-all active:scale-95 shadow-md flex items-center justify-center gap-1
+                                                                ${canSell 
+                                                                    ? 'bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-400 hover:to-rose-500 text-white' 
+                                                                    : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed text-[10px]'
+                                                                }`}
+                                                        >
+                                                            {canSell ? '차량 판매하기 (2포인트 반환 💰)' : '기본 차량 판매 불가 🔒'}
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => {
+                                                                if (canBuy) {
+                                                                    const newOwned = [...new Set([...ownedCars, carId])];
+                                                                    const newPoints = upgradePoints - cost;
+                                                                    setOwnedCars(newOwned);
+                                                                    setActiveCar(carId);
+                                                                    setUpgradePoints(newPoints);
+                                                                    setShowShopModal(false);
+                                                                    saveProgress(level, totalExp, parts, newPoints, newOwned, carId, hasSelectedInitialCar, hasSeenLv2Popup);
+                                                                    confetti({
+                                                                        particleCount: 80,
+                                                                        spread: 70,
+                                                                        origin: { y: 0.6 }
+                                                                    });
+                                                                }
+                                                            }}
+                                                            disabled={!canBuy}
+                                                            className={`w-full py-2 rounded-xl text-xs font-bold font-jua transition-all ${canBuy
+                                                                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white shadow-md active:scale-95'
+                                                                    : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed text-[10px]'
+                                                                }`}
+                                                        >
+                                                            {!isLevelMet
+                                                                ? `Lv.${reqLevel} 해금 필요 (현재 Lv.${level})`
+                                                                : upgradePoints >= cost
+                                                                    ? `구매하기 (${cost}포인트 소모)`
+                                                                    : `포인트 부족 (${cost}포인트 필요)`}
+                                                        </button>
+                                                    )}
                                                 </div>
                                             );
                                         })}
@@ -1984,7 +2066,8 @@
                                             </p>
                                             <div className="flex justify-center gap-6 mt-3 text-[11px] font-bold">
                                                 <span className="text-red-400">⚡ 최고속도: {matchedCar.baseSpeed} km/h</span>
-                                                <span className="text-yellow-400">🔥 가속도: {matchedCar.baseAccel} / 10</span>
+                                                <span className="text-yellow-400">🔥 가속도: {matchedCar.baseAccel}</span>
+                                                <span className="text-green-400">🎯 핸들링: {matchedCar.baseHandling}</span>
                                             </div>
                                         </div>
                                     );
@@ -2293,6 +2376,17 @@
                                     <div className="absolute inset-0 opacity-5 pointer-events-none"
                                         style={{ backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '15px 15px' }}></div>
 
+                                    {/* Close Button */}
+                                    <button
+                                        onClick={handleCloseBattle}
+                                        className="absolute top-4 right-4 text-slate-400 hover:text-white hover:scale-110 active:scale-95 transition-all duration-200 z-30"
+                                        title="나가기"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+
                                     {/* Header */}
                                     <h2 className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 mb-2 tracking-wide drop-shadow-sm flex items-center gap-1.5 z-10">
                                         🏟️ 서킷 배틀 스타디움
@@ -2332,12 +2426,20 @@
                                                 <span className="w-5 h-5 rounded-full bg-green-600 opacity-30"></span>
                                             </div>
 
-                                            <button
-                                                onClick={handleLaunchBattle}
-                                                className="w-full py-4 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:from-indigo-400 hover:to-pink-400 text-white font-extrabold text-lg rounded-2xl shadow-xl transform transition hover:scale-105 active:scale-95 flex items-center justify-center gap-2 animate-pulse"
-                                            >
-                                                <span>🚦 START BATTLE</span>
-                                            </button>
+                                            <div className="w-full flex flex-col gap-2">
+                                                <button
+                                                    onClick={handleLaunchBattle}
+                                                    className="w-full py-3.5 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:from-indigo-400 hover:to-pink-400 text-white font-extrabold text-lg rounded-2xl shadow-xl transform transition hover:scale-[1.03] active:scale-95 flex items-center justify-center gap-2 animate-pulse"
+                                                >
+                                                    <span>🚦 START BATTLE</span>
+                                                </button>
+                                                <button
+                                                    onClick={handleCloseBattle}
+                                                    className="w-full py-2.5 bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white font-bold text-sm rounded-2xl border border-slate-700 transition transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                                                >
+                                                    <span>↩️ 대결 나가기</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     )}
 
@@ -2412,6 +2514,14 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            {battleState === 'racing' && (
+                                                <button
+                                                    onClick={handleCloseBattle}
+                                                    className="w-full mt-4 py-2.5 bg-slate-800/60 hover:bg-slate-700/80 border border-slate-800 text-slate-400 hover:text-red-400 font-bold text-xs rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                                                >
+                                                    <span>🏳️ 기권하고 나가기</span>
+                                                </button>
+                                            )}
                                         </div>
                                     )}
 
@@ -2457,9 +2567,7 @@
                                             </div>
 
                                             <button
-                                                onClick={() => {
-                                                    setShowBattleModal(false);
-                                                }}
+                                                onClick={handleCloseBattle}
                                                 className="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl transition-all active:scale-95 text-sm"
                                             >
                                                 경기장 서킷 나가기 🏁
