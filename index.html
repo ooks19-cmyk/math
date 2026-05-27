@@ -10,10 +10,12 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="data.js"></script>
 
     <!-- Firebase Compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="db.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 
@@ -94,552 +96,11 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
+        const { CAR_DATA, getSpeedVal, getAccelVal, getHandlingVal, generateProblem } = window;
 
-        const CAR_DATA = {
-            lv1: {
-                id: 'lv1',
-                name: '초보 연습 차량',
-                image: 'car/lv1.jpg',
-                baseSpeed: 150,
-                baseAccel: 3.0,
-                baseHandling: 3.0,
-                reqLevel: 0,
-                desc: '레이싱의 기본을 다지기 위한 조그만 연습 차량'
-            },
-            gv70: {
-                id: 'gv70',
-                name: 'GV70',
-                image: 'car/gv70.jpg',
-                baseSpeed: 180,
-                baseAccel: 4.0,
-                baseHandling: 4.2,
-                reqLevel: 2,
-                desc: '묵직한 가속감과 안정성을 겸비한 럭셔리 SUV'
-            },
-            k5: {
-                id: 'k5',
-                name: 'K5',
-                image: 'car/k5.jpg',
-                baseSpeed: 190,
-                baseAccel: 4.2,
-                baseHandling: 4.5,
-                reqLevel: 2,
-                desc: '스포티한 주행감과 민첩한 코너링의 스포츠 세단'
-            },
-            ct: {
-                id: 'ct',
-                name: '사이버트럭',
-                image: 'car/ct.jpg',
-                baseSpeed: 210,
-                baseAccel: 5.5,
-                baseHandling: 4.0,
-                reqLevel: 10,
-                desc: '단단한 장갑과 폭발적인 초반 토크의 미래형 트럭'
-            },
-            my: {
-                id: 'my',
-                name: '모델 Y',
-                image: 'car/my.jpg',
-                baseSpeed: 200,
-                baseAccel: 5.0,
-                baseHandling: 4.6,
-                reqLevel: 0,
-                desc: '전기차 특유의 부드럽고 균형 잡힌 친환경 SUV'
-            },
-            carnival: {
-                id: 'carnival',
-                name: '카니발',
-                image: 'car/carnival.jpg',
-                baseSpeed: 165,
-                baseAccel: 3.5,
-                baseHandling: 3.5,
-                reqLevel: 0,
-                desc: '넓고 안락한 공간을 자랑하는 대한민국 대표 패밀리 미니밴'
-            },
-            sorento: {
-                id: 'sorento',
-                name: '쏘렌토',
-                image: 'car/sorento.jpg',
-                baseSpeed: 172,
-                baseAccel: 3.8,
-                baseHandling: 3.8,
-                reqLevel: 0,
-                desc: '강인한 디자인과 뛰어난 공간 활용성의 대표 패밀리 SUV'
-            },
-            macan: {
-                id: 'macan',
-                name: '마칸',
-                image: 'car/macan.jpg',
-                baseSpeed: 220,
-                baseAccel: 6.0,
-                baseHandling: 5.5,
-                reqLevel: 0,
-                desc: '포르쉐의 스포츠카 DNA를 그대로 이식한 럭셔리 스포츠 SUV'
-            },
-            urus: {
-                id: 'urus',
-                name: '우루스',
-                image: 'car/urus.jpg',
-                baseSpeed: 250,
-                baseAccel: 7.0,
-                baseHandling: 6.5,
-                reqLevel: 20,
-                desc: '슈퍼카의 성능과 SUV의 실용성을 결합한 하이퍼 SUV'
-            },
-            nsx: {
-                id: 'nsx',
-                name: '혼다 NSX',
-                image: 'car/honda_nsx.jpg',
-                baseSpeed: 270,
-                baseAccel: 8.0,
-                baseHandling: 7.8,
-                reqLevel: 25,
-                desc: '혼다의 첨단 하이브리드 기술과 미드쉽 레이아웃이 융합된 친환경 슈퍼카'
-            },
-            supra: {
-                id: 'supra',
-                name: '토요타 수프라',
-                image: 'car/toyota_supra.webp',
-                baseSpeed: 290,
-                baseAccel: 8.5,
-                baseHandling: 8.2,
-                reqLevel: 30,
-                desc: '강력한 터보 엔진과 우수한 밸런스로 레이서들의 사랑을 받는 튜닝의 대명사'
-            },
-            bmw_m4: {
-                id: 'bmw_m4',
-                name: 'BMW M4',
-                image: 'car/bmw_m4.jpg',
-                baseSpeed: 310,
-                baseAccel: 9.0,
-                baseHandling: 8.8,
-                reqLevel: 35,
-                cost: 5,
-                desc: '역동적인 디자인과 트랙 중심의 강력한 드라이빙 퍼포먼스를 선사하는 고성능 쿠페'
-            },
-            musteng: {
-                id: 'musteng',
-                name: '포드 뉴 머스탱',
-                image: 'car/ford_new musteng.jpg',
-                baseSpeed: 330,
-                baseAccel: 9.5,
-                baseHandling: 8.5,
-                reqLevel: 40,
-                cost: 7,
-                desc: '아메리칸 머슬카의 전설, 웅장한 배기음과 폭발적인 후륜 퍼포먼스의 상징'
-            },
-            benz_s: {
-                id: 'benz_s',
-                name: '벤츠 S클래스',
-                image: 'car/benz_s class.png',
-                baseSpeed: 350,
-                baseAccel: 10.0,
-                baseHandling: 9.2,
-                reqLevel: 45,
-                cost: 7,
-                desc: '플래그십 세단의 정석, 품격 높은 승차감 속에 숨겨진 고요하고 강력한 퍼포먼스'
-            },
-            audi_r8: {
-                id: 'audi_r8',
-                name: '아우디 R8',
-                image: 'car/audi_r8.jpg',
-                baseSpeed: 380,
-                baseAccel: 11.0,
-                baseHandling: 10.0,
-                reqLevel: 50,
-                cost: 7,
-                desc: 'V10 미드쉽 엔진을 품은 아우디 모터스포츠 기술력의 정수, 궁극의 하이퍼카'
-            }
-        };
+        
 
-        // 최고속도 연산 순수 함수
-        const getSpeedVal = (carId, partsVal) => {
-            const car = CAR_DATA[carId] || CAR_DATA.lv1;
-            const base = car.baseSpeed;
-            const partBonus = (partsVal.engine * 3) + (partsVal.mission * 2) + (partsVal.tire * 2) + (partsVal.brake * 2);
-            const minLevel = Math.min(partsVal.engine, partsVal.mission, partsVal.tire, partsVal.brake);
-            const balanceBonus = minLevel * 15;
-            return base + partBonus + balanceBonus;
-        };
 
-        // 가속도 연산 순수 함수 (무제한)
-        const getAccelVal = (carId, partsVal) => {
-            const car = CAR_DATA[carId] || CAR_DATA.lv1;
-            const base = car.baseAccel;
-            const upgradeBonus = (partsVal.engine * 0.15) + (partsVal.mission * 0.1) + (partsVal.tire * 0.1);
-            return parseFloat((base + upgradeBonus).toFixed(2));
-        };
-
-        // 핸들링 연산 순수 함수
-        const getHandlingVal = (carId, partsVal) => {
-            const car = CAR_DATA[carId] || CAR_DATA.lv1;
-            const base = car.baseHandling || 5.0;
-            const upgradeBonus = (partsVal.mission * 0.1) + (partsVal.tire * 0.15) + (partsVal.brake * 0.1);
-            return parseFloat((base + upgradeBonus).toFixed(2));
-        };
-
-        // ==========================================
-        // [필독] Firebase 연결 설정 정보 기입
-        // ==========================================
-        // 본인의 Firebase 웹 프로젝트 설정 값을 여기에 붙여넣어 주세요.
-        // 비워두면 자동으로 브라우저 내 '로컬 모의 클라우드(Mock Cloud DB)' 모드로 안전하게 작동합니다.
-        const firebaseConfig = {
-            apiKey: "AIzaSyD0jJfd1uyjzpYqN3cyLHn1sVr7dIkxQac",
-            authDomain: "my-family-ab699.firebaseapp.com",
-            projectId: "my-family-ab699",
-            storageBucket: "my-family-ab699.firebasestorage.app",
-            messagingSenderId: "289127412048",
-            appId: "1:289127412048:web:cd5f0b40f4bd6a56a5bc55",
-            measurementId: "G-GLH78VGYSF"
-        };
-
-        // 데이터베이스 통합 제어 서비스 (Firestore & Local Mock Cloud 호환)
-        const dbService = {
-            isFirebase: false,
-            firestore: null,
-
-            init() {
-                const hasConfig = firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey.trim() !== "";
-                if (hasConfig) {
-                    try {
-                        if (!firebase.apps.length) {
-                            firebase.initializeApp(firebaseConfig);
-                        }
-                        this.firestore = firebase.firestore();
-                        this.isFirebase = true;
-                        console.log("🟢 Firebase Firestore 클라우드 연결 완료!");
-                    } catch (error) {
-                        console.error("🔴 Firebase 초기화 에러 (로컬 모의 클라우드로 대체):", error);
-                        this.isFirebase = false;
-                    }
-                } else {
-                    console.log("🔵 Firebase 설정 없음 - 로컬 모의 클라우드로 작동합니다.");
-                    this.isFirebase = false;
-                }
-            },
-
-            // 로컬 모의 클라우드 헬퍼 (로컬스토리지 모의 DB)
-            _getLocalUsers() {
-                try {
-                    const data = localStorage.getItem('racer-mock-cloud-users');
-                    return data ? JSON.parse(data) : {};
-                } catch (e) {
-                    return {};
-                }
-            },
-
-            _saveLocalUsers(users) {
-                try {
-                    localStorage.setItem('racer-mock-cloud-users', JSON.stringify(users));
-                } catch (e) {
-                    console.error("로컬 백업 저장 실패:", e);
-                }
-            },
-
-            // 로그인 처리
-            async login(id, password) {
-                const normalizedId = id.trim().toLowerCase();
-                if (!normalizedId) throw new Error("아이디를 입력해주세요.");
-
-                if (this.isFirebase) {
-                    try {
-                        const doc = await this.firestore.collection('racer_users').doc(normalizedId).get();
-                        if (!doc.exists) {
-                            throw new Error("존재하지 않는 아이디입니다.");
-                        }
-                        const userData = doc.data();
-                        if (userData.password !== password) {
-                            throw new Error("비밀번호가 올바르지 않습니다.");
-                        }
-                        return userData;
-                    } catch (error) {
-                        console.error("Firebase 로그인 실패:", error);
-                        throw error;
-                    }
-                } else {
-                    // 로컬 모의 클라우드 로그인
-                    const users = this._getLocalUsers();
-                    const user = users[normalizedId];
-                    if (!user) {
-                        throw new Error("존재하지 않는 아이디입니다.");
-                    }
-                    if (user.password !== password) {
-                        throw new Error("비밀번호가 올바르지 않습니다.");
-                    }
-                    return user;
-                }
-            },
-
-            // 회원가입 처리
-            async register(id, password) {
-                const normalizedId = id.trim().toLowerCase();
-                if (!normalizedId) throw new Error("아이디를 입력해주세요.");
-                if (!password || password.trim() === "") throw new Error("비밀번호를 입력해주세요.");
-
-                // 기본 시작 정보
-                const defaultData = {
-                    id: normalizedId,
-                    password: password,
-                    level: 1,
-                    totalExp: 0,
-                    parts: { engine: 0, mission: 0, tire: 0, brake: 0 },
-                    upgradePoints: 0,
-                    ownedCars: ['lv1'],
-                    activeCar: 'lv1',
-                    hasSelectedInitialCar: false,
-                    hasSeenLv2Popup: false,
-                    updatedAt: new Date().toISOString()
-                };
-
-                if (this.isFirebase) {
-                    try {
-                        const docRef = this.firestore.collection('racer_users').doc(normalizedId);
-                        const doc = await docRef.get();
-                        if (doc.exists) {
-                            throw new Error("이미 존재하는 아이디입니다.");
-                        }
-                        await docRef.set(defaultData);
-                        return defaultData;
-                    } catch (error) {
-                        console.error("Firebase 회원가입 실패:", error);
-                        throw error;
-                    }
-                } else {
-                    // 로컬 모의 클라우드 가입
-                    const users = this._getLocalUsers();
-                    if (users[normalizedId]) {
-                        throw new Error("이미 존재하는 아이디입니다.");
-                    }
-                    users[normalizedId] = defaultData;
-                    this._saveLocalUsers(users);
-                    return defaultData;
-                }
-            },
-
-            // 데이터 클라우드 동기화 저장
-            async saveProgress(id, progressData) {
-                const normalizedId = id.trim().toLowerCase();
-                if (!normalizedId) return;
-
-                if (this.isFirebase) {
-                    try {
-                        await this.firestore.collection('racer_users').doc(normalizedId).update({
-                            ...progressData,
-                            updatedAt: new Date().toISOString()
-                        });
-                        console.log("☁️ Firestore 클라우드 저장 완료");
-                    } catch (error) {
-                        console.error("Firestore 저장 실패 (배경 백업):", error);
-                    }
-                } else {
-                    // 로컬 모의 클라우드 업데이트
-                    const users = this._getLocalUsers();
-                    if (users[normalizedId]) {
-                        users[normalizedId] = {
-                            ...users[normalizedId],
-                            ...progressData,
-                            updatedAt: new Date().toISOString()
-                        };
-                        this._saveLocalUsers(users);
-                        console.log("💾 로컬 모의 클라우드 데이터 저장 완료");
-                    }
-                }
-            },
-
-            // 실시간 랭킹 수집 메서드
-            async fetchRankings() {
-                if (this.isFirebase) {
-                    try {
-                        const snapshot = await this.firestore.collection('racer_users').get();
-                        const list = [];
-                        snapshot.forEach(doc => {
-                            list.push(doc.data());
-                        });
-                        return list;
-                    } catch (error) {
-                        console.error("Firebase 랭킹 수집 실패:", error);
-                        throw error;
-                    }
-                } else {
-                    const usersObj = this._getLocalUsers();
-                    return Object.values(usersObj);
-                }
-            }
-        };
-
-        // DB 서비스 즉시 이니셜라이즈
-        dbService.init();
-
-        // 문제 생성 유틸리티 함수
-        const generateProblem = (isToddler = false, isAdult = false, currentLevel = 1) => {
-            if (isToddler) {
-                // 유아모드: 1 ~ 5 사이의 과일 개수 세기 방식
-                const fruits = ['🍎', '🍌', '🍇', '🍓', '🍊'];
-                const chosenFruit = fruits[Math.floor(Math.random() * fruits.length)];
-                const count = Math.floor(Math.random() * 5) + 1; // 1 ~ 5 제한
-                return {
-                    id: Math.random().toString(36).substr(2, 9),
-                    type: 'toddler',
-                    fruit: chosenFruit,
-                    fruitCount: count,
-                    numbers: [count],
-                    ops: [],
-                    answer: count
-                };
-            }
-            if (isAdult) {
-                // 성인모드: 세 자리 숫자 더하기 빼기
-                const type = Math.floor(Math.random() * 2) + 1;
-                if (type === 1) {
-                    // 세자리 수 2개 연산
-                    const a = Math.floor(Math.random() * 900) + 100; // 100 ~ 999
-                    const b = Math.floor(Math.random() * 900) + 100; // 100 ~ 999
-                    const op = Math.random() > 0.5 ? '+' : '-';
-
-                    const finalA = op === '-' && a < b ? b : a;
-                    const finalB = op === '-' && a < b ? a : b;
-                    const finalAnswer = op === '+' ? finalA + finalB : finalA - finalB;
-
-                    return {
-                        id: Math.random().toString(36).substr(2, 9),
-                        type: 'adult',
-                        numbers: [finalA, finalB],
-                        ops: [op],
-                        answer: finalAnswer
-                    };
-                } else {
-                    // 세자리 수 3개 혼합 연산
-                    const a = Math.floor(Math.random() * 900) + 100;
-                    const b = Math.floor(Math.random() * 400) + 100;
-                    const c = Math.floor(Math.random() * 400) + 100;
-                    const op1 = Math.random() > 0.5 ? '+' : '-';
-                    const op2 = Math.random() > 0.5 ? '+' : '-';
-
-                    let finalA = a;
-                    let finalB = b;
-                    if (op1 === '-' && a < b) {
-                        finalA = b + 150;
-                    }
-                    let temp = op1 === '+' ? finalA + finalB : finalA - finalB;
-
-                    let finalC = c;
-                    if (op2 === '-' && temp < c) {
-                        finalC = Math.floor(temp / 2) + 1;
-                    }
-                    const answer = op2 === '+' ? temp + finalC : temp - finalC;
-
-                    return {
-                        id: Math.random().toString(36).substr(2, 9),
-                        type: 'adult_3',
-                        numbers: [finalA, finalB, finalC],
-                        ops: [op1, op2],
-                        answer: answer
-                    };
-                }
-            }
-
-            // [신규] 레벨 40 이상 고난이도 문제 출제 분기
-            if (currentLevel >= 40) {
-                const type = Math.floor(Math.random() * 3) + 1; // 1: 두자리 덧셈, 2: 두자리 뺄셈, 3: 구구단
-                if (type === 1) {
-                    // 받아올림이 있는 두자리 수 + 두자리 수
-                    let a, b;
-                    do {
-                        a = Math.floor(Math.random() * 80) + 10; // 10 ~ 89
-                        b = Math.floor(Math.random() * 80) + 10; // 10 ~ 89
-                    } while ((a % 10) + (b % 10) < 10); // 일의 자리 합이 10 이상이어야 받아올림 보장
-
-                    return {
-                        id: Math.random().toString(36).substr(2, 9),
-                        type: 'level40_add',
-                        numbers: [a, b],
-                        ops: ['+'],
-                        answer: a + b
-                    };
-                } else if (type === 2) {
-                    // 받아내림이 있는 두자리 수 - 두자리 수
-                    let a, b;
-                    do {
-                        a = Math.floor(Math.random() * 80) + 19; // 19 ~ 98
-                        b = Math.floor(Math.random() * 80) + 10; // 10 ~ 89
-                    } while (a <= b || (a % 10) >= (b % 10)); // a > b 여야 하고, 일의 자리 a < b 여야 받아내림 보장
-
-                    return {
-                        id: Math.random().toString(36).substr(2, 9),
-                        type: 'level40_sub',
-                        numbers: [a, b],
-                        ops: ['-'],
-                        answer: a - b
-                    };
-                } else {
-                    // 구구단 (한자리 수 곱셈)
-                    const a = Math.floor(Math.random() * 8) + 2; // 2 ~ 9
-                    const b = Math.floor(Math.random() * 9) + 1; // 1 ~ 9
-                    return {
-                        id: Math.random().toString(36).substr(2, 9),
-                        type: 'level40_mul',
-                        numbers: [a, b],
-                        ops: ['×'],
-                        answer: a * b
-                    };
-                }
-            }
-
-            const type = Math.floor(Math.random() * 3) + 1;
-
-            if (type === 1) {
-                // 1. 받아내림이 있는 두자리 숫자 뺄셈
-                let a, b;
-                do {
-                    a = Math.floor(Math.random() * 70) + 20; // 20 ~ 89
-                    b = Math.floor(Math.random() * 8) + 2;   // 2 ~ 9
-                } while (a % 10 >= b); // 일의 자리 숫자가 빼는 수보다 작아야 받아내림 발생
-
-                return {
-                    id: Math.random().toString(36).substr(2, 9),
-                    type: 1,
-                    numbers: [a, b],
-                    ops: ['-'],
-                    answer: a - b
-                };
-            } else if (type === 2) {
-                // 2. 받아올림이 있는 두자리 + 한자리 숫자 덧셈
-                let a, b;
-                do {
-                    a = Math.floor(Math.random() * 70) + 11; // 11 ~ 80
-                    b = Math.floor(Math.random() * 8) + 2;   // 2 ~ 9
-                } while ((a % 10) + b < 10); // 일의 자리 합이 10 이상이어야 받아올림 발생
-
-                return {
-                    id: Math.random().toString(36).substr(2, 9),
-                    type: 2,
-                    numbers: [a, b],
-                    ops: ['+'],
-                    answer: a + b
-                };
-            } else {
-                // 3. 세 수의 연산 (덧셈/뺄셈 섞임)
-                let a, b, c, op1, op2, ans;
-                do {
-                    a = Math.floor(Math.random() * 11) + 10; // 10 ~ 20
-                    b = Math.floor(Math.random() * 9) + 1;   // 1 ~ 9
-                    c = Math.floor(Math.random() * 9) + 1;   // 1 ~ 9
-                    op1 = Math.random() > 0.5 ? '+' : '-';
-                    op2 = Math.random() > 0.5 ? '+' : '-';
-
-                    let temp = op1 === '+' ? a + b : a - b;
-                    ans = op2 === '+' ? temp + c : temp - c;
-                } while ((op1 === '-' && a - b < 0) || ans < 0 || ans > 40); // 중간 계산과 결과가 음수가 되지 않도록 설정
-
-                return {
-                    id: Math.random().toString(36).substr(2, 9),
-                    type: 3,
-                    numbers: [a, b, c],
-                    ops: [op1, op2],
-                    answer: ans
-                };
-            }
-        };
 
         // 레벨에 따른 레이서 및 자동차 SVG 컴포넌트
         const RacerAvatar = ({ level }) => {
@@ -950,6 +411,533 @@
             );
         };
 
+
+        const RankingModal = ({
+    show,
+    onClose,
+    rankingData,
+    rankingTab,
+    setRankingTab,
+    rankingLoading,
+    currentUser,
+    lastMatchMap,
+    CAR_DATA,
+    handleStartBattle
+}) => {
+    if (!show) return null;
+
+    const sortedRanking = [...rankingData].sort((a, b) => {
+        if (rankingTab === 'level') {
+            const aLvl = a.level || 1;
+            const bLvl = b.level || 1;
+            if (bLvl !== aLvl) return bLvl - aLvl;
+
+            const aExp = a.totalExp || 0;
+            const bExp = b.totalExp || 0;
+            if (bExp !== aExp) return bExp - aExp;
+
+            return (a.id || '').localeCompare(b.id || '');
+        } else { // 'speed'
+            const aSpeed = a.maxSpeed || 200;
+            const bSpeed = b.maxSpeed || 200;
+            if (bSpeed !== aSpeed) return bSpeed - aSpeed;
+
+            const aLvl = a.level || 1;
+            const bLvl = b.level || 1;
+            if (bLvl !== aLvl) return bLvl - aLvl;
+
+            return (a.id || '').localeCompare(b.id || '');
+        }
+    });
+
+    return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn font-jua">
+            <div className="bg-slate-950/90 border border-yellow-400/50 shadow-[0_0_30px_rgba(250,204,21,0.25)] rounded-3xl p-6 sm:p-8 max-w-lg w-full backdrop-blur-md relative z-50 flex flex-col max-h-[90vh] text-white">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold text-yellow-400 flex items-center gap-2">
+                        🏆 명예의 전당 (실시간 랭킹)
+                    </h2>
+                    <button
+                        onClick={onClose}
+                        className="text-slate-400 hover:text-white text-xl font-bold p-1 bg-slate-900 rounded-lg w-8 h-8 flex items-center justify-center transition-colors"
+                    >
+                        ✕
+                    </button>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex gap-2 mb-4 bg-slate-900 p-1 rounded-xl border border-slate-800">
+                    <button
+                        onClick={() => setRankingTab('level')}
+                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1 ${rankingTab === 'level'
+                                ? 'bg-yellow-400 text-yellow-950 font-extrabold shadow-md'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                    >
+                        ⭐ 레벨 순
+                    </button>
+                    <button
+                        onClick={() => setRankingTab('speed')}
+                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1 ${rankingTab === 'speed'
+                                ? 'bg-yellow-400 text-yellow-950 font-extrabold shadow-md'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                    >
+                        🔥 최고속도 순
+                    </button>
+                </div>
+
+                {/* Loading State */}
+                {rankingLoading ? (
+                    <div className="flex-1 flex flex-col items-center justify-center py-12 gap-3">
+                        <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                        <p className="text-slate-400 text-sm animate-pulse">실시간 순위 분석 중...</p>
+                    </div>
+                ) : sortedRanking.length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center py-12 text-slate-500">
+                        등록된 플레이어가 없습니다.
+                    </div>
+                ) : (
+                    /* Rankings List */
+                    <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 max-h-[55vh] custom-scrollbar">
+                        {sortedRanking.map((item, index) => {
+                            const isSelf = item.id === currentUser;
+                            const rankNum = index + 1;
+
+                            // 1, 2, 3위 메달 및 로우 그라데이션
+                            let rowStyle = "bg-slate-900/60 border border-slate-800 hover:border-slate-700";
+                            let badge = null;
+                            let rankText = <span className="text-slate-400 font-bold text-sm w-6 text-center">{rankNum}</span>;
+
+                            if (rankNum === 1) {
+                                rowStyle = "bg-gradient-to-r from-yellow-500/25 to-amber-500/10 border border-yellow-400/50";
+                                badge = "🥇";
+                                rankText = <span className="text-2xl w-6 text-center">{badge}</span>;
+                            } else if (rankNum === 2) {
+                                rowStyle = "bg-gradient-to-r from-slate-300/20 to-slate-400/5 border border-slate-300/40";
+                                badge = "🥈";
+                                rankText = <span className="text-2xl w-6 text-center">{badge}</span>;
+                            } else if (rankNum === 3) {
+                                rowStyle = "bg-gradient-to-r from-amber-600/20 to-amber-700/5 border border-amber-600/40";
+                                badge = "🥉";
+                                rankText = <span className="text-2xl w-6 text-center">{badge}</span>;
+                            }
+
+                            // 본인 계정 테두리 강조
+                            if (isSelf) {
+                                rowStyle = `bg-indigo-950/40 border-2 border-indigo-400 shadow-[0_0_12px_rgba(129,140,248,0.25)]`;
+                            }
+
+                            const carName = item.activeCarName || CAR_DATA[item.activeCar || 'lv1']?.name || '연습 차량';
+
+                            return (
+                                <div
+                                    key={item.id}
+                                    className={`flex items-center justify-between p-3.5 rounded-2xl transition-all ${rowStyle}`}
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        {/* 본인일 경우 좌측 지시 화살표 */}
+                                        {isSelf && (
+                                            <span className="text-indigo-400 text-sm animate-pulse">▶</span>
+                                        )}
+                                        {rankText}
+                                        <div className="flex flex-col min-w-0">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={`font-bold text-sm truncate ${isSelf ? 'text-indigo-300' : 'text-slate-200'}`}>
+                                                    {item.id}
+                                                </span>
+                                                {isSelf && (
+                                                    <span className="bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-[9px] px-1.5 py-0.5 rounded-md font-extrabold">
+                                                        YOU
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span className="text-[10px] text-slate-400 font-medium truncate mt-0.5">
+                                                🚗 {carName}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* 스펙 정보 */}
+                                    <div className="flex items-center gap-4 text-right shrink-0">
+                                        <div className="flex flex-col">
+                                            <span className="text-yellow-400 font-bold text-sm">
+                                                Lv.{item.level || 1}
+                                            </span>
+                                            <span className="text-[9px] text-slate-500 font-bold">
+                                                {item.totalExp || 0} EXP
+                                            </span>
+                                        </div>
+                                        <div className="border-l border-slate-800 h-6"></div>
+                                        <div className="flex flex-col min-w-[70px]">
+                                            <span className="text-red-400 font-extrabold text-sm">
+                                                ⚡ {item.maxSpeed || 200}
+                                            </span>
+                                            <span className="text-[8px] text-red-500/70 font-extrabold">
+                                                km/h
+                                            </span>
+                                        </div>
+
+                                        {/* 일일 대결하기 버튼: 본인 제외 */}
+                                        {!isSelf && (() => {
+                                            const todayStr = new Date().toISOString().split('T')[0];
+                                            const isCompleted = !!(lastMatchMap && lastMatchMap[item.id] === todayStr);
+                                            return (
+                                                <button
+                                                    onClick={() => handleStartBattle(item)}
+                                                    disabled={isCompleted}
+                                                    className={`ml-1.5 px-2.5 py-1.5 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center gap-0.5 ${isCompleted
+                                                            ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed text-[10px]'
+                                                            : 'bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-extrabold shadow-md transform hover:scale-105'
+                                                        }`}
+                                                >
+                                                    {isCompleted ? (
+                                                        <>
+                                                            <span>🔒 완료</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <span>⚔️ 대결</span>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            );
+                                        })()}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Footer */}
+                <div className="mt-5 pt-3 border-t border-slate-900 flex justify-between items-center text-[10px] text-slate-500 font-semibold pl-1">
+                    <span>🏁 실시간 데이터 동기화 완료</span>
+                    <button
+                        onClick={onClose}
+                        className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-bold py-2 px-6 rounded-xl transition-all active:scale-95 text-xs"
+                    >
+                        닫기
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+        const BattleModal = ({
+    show,
+    battleOpponent,
+    CAR_DATA,
+    playerDistance,
+    opponentDistance,
+    battleTime,
+    currentUser,
+    calculateSpeed,
+    calculateAccel,
+    getAccelVal,
+    battleState,
+    handleLaunchBattle,
+    handleCloseBattle,
+    playerSpeed,
+    opponentSpeed,
+    battleWinner,
+    calcPhysicsTime,
+    parts,
+    activeCar,
+    calculateHandling
+}) => {
+    if (!show) return null;
+
+    const [trackId, setTrackId] = useState('monza');
+    const trackPathRef = useRef(null);
+
+    const oppId = battleOpponent?.id || '상대 드라이버';
+    const oppCarName = battleOpponent?.activeCarName || CAR_DATA[battleOpponent?.activeCar || 'lv1']?.name || '연습 차량';
+    const trackLength = trackId === 'jeju' ? 8000 : 10000;
+
+    const pathNode = trackPathRef.current;
+    let pPos = { x: 100, y: 25 };
+    let oPos = { x: 100, y: 25 };
+    if (pathNode) {
+        try {
+            const pathLength = pathNode.getTotalLength();
+            const pRatio = Math.min(1.0, playerDistance / trackLength);
+            const oRatio = Math.min(1.0, opponentDistance / trackLength);
+            const pPt = pathNode.getPointAtLength(pRatio * pathLength);
+            const oPt = pathNode.getPointAtLength(oRatio * pathLength);
+            pPos = { x: pPt.x, y: pPt.y };
+            oPos = { x: oPt.x, y: oPt.y };
+        } catch (e) {}
+    }
+
+    // 시간 포맷 헬퍼
+    const formatLapTime = (sec) => {
+        const m = Math.floor(sec / 60).toString().padStart(2, '0');
+        const s = Math.floor(sec % 60).toString().padStart(2, '0');
+        const ms = Math.floor((sec % 1) * 100).toString().padStart(2, '0');
+        return `${m}:${s}.${ms}`;
+    };
+
+    return (
+        <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn font-jua">
+            <div className="bg-slate-900 border-2 border-indigo-500/60 shadow-[0_0_40px_rgba(99,102,241,0.3)] rounded-3xl p-6 sm:p-8 max-w-xl w-full flex flex-col items-center relative overflow-hidden text-white animate-fadeIn">
+                {/* Neon Grid Effect */}
+                <div className="absolute inset-0 opacity-5 pointer-events-none"
+                    style={{ backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '15px 15px' }}></div>
+
+                {/* Close Button */}
+                <button
+                    onClick={handleCloseBattle}
+                    className="absolute top-4 right-4 text-slate-400 hover:text-white hover:scale-110 active:scale-95 transition-all duration-200 z-30"
+                    title="나가기"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                {/* Header */}
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 mb-2 tracking-wide drop-shadow-sm flex items-center gap-1.5 z-10">
+                    🏟️ 서킷 배틀 스타디움
+                </h2>
+                <p className="text-slate-400 text-xs sm:text-sm mb-5 z-10 text-center font-medium">
+                    원형 코스 혹은 꼬불꼬불한 코너 서킷을 정복할 최강의 드라이버를 가립니다!
+                </p>
+
+                {/* Ready State */}
+                {battleState === 'ready' && (
+                    <div className="w-full flex flex-col items-center gap-5 z-10">
+                        {/* Specs row */}
+                        <div className="grid grid-cols-2 gap-4 w-full">
+                            {/* Player Spec Card */}
+                            <div className="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 text-center">
+                                <span className="bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold">DRIVER</span>
+                                <h3 className="text-lg font-bold text-indigo-300 mt-2 truncate">{currentUser}</h3>
+                                <div className="mt-3 text-xs space-y-1 text-slate-300 text-left pl-3">
+                                    <div>⚡ 최고속도: <span className="text-yellow-400 font-extrabold">{calculateSpeed()}km/h</span></div>
+                                    <div>🔥 가속도: <span className="text-yellow-400 font-extrabold">{calculateAccel()}/10</span></div>
+                                    <div>🎯 핸들링: <span className="text-yellow-400 font-extrabold">{calculateHandling()}/10</span></div>
+                                </div>
+                            </div>
+                            {/* Opponent Spec Card */}
+                            <div className="bg-orange-950/40 border border-orange-500/30 rounded-2xl p-4 text-center">
+                                <span className="bg-orange-500/20 border border-orange-500/40 text-orange-300 text-[10px] px-2 py-0.5 rounded-full font-bold">CHALLENGER</span>
+                                <h3 className="text-lg font-bold text-orange-300 mt-2 truncate">{oppId}</h3>
+                                <div className="mt-3 text-xs space-y-1 text-slate-300 text-left pl-3">
+                                    <div>⚡ 최고속도: <span className="text-yellow-400 font-extrabold">{battleOpponent?.maxSpeed || 200}km/h</span></div>
+                                    <div>🔥 가속도: <span className="text-yellow-400 font-extrabold">{getAccelVal(battleOpponent?.activeCar || 'lv1', battleOpponent?.parts || { engine: 0, mission: 0, tire: 0, brake: 0 })}/10</span></div>
+                                    <div>🎯 핸들링: <span className="text-yellow-400 font-extrabold">{getHandlingVal(battleOpponent?.activeCar || 'lv1', battleOpponent?.parts || { engine: 0, mission: 0, tire: 0, brake: 0 })}/10</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Track Selector */}
+                        <div className="w-full bg-slate-950/40 border border-indigo-500/20 rounded-2xl p-4 flex flex-col gap-2">
+                            <label className="text-xs font-bold text-indigo-300 flex items-center gap-1">🏁 레이싱 트랙 선택</label>
+                            <select
+                                value={trackId}
+                                onChange={(e) => setTrackId(e.target.value)}
+                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 font-bold cursor-pointer"
+                            >
+                                <option value="monza">🏎️ 몬자 고속 스타디움 (10km, 직선 중심 코스)</option>
+                                <option value="jeju">🌴 제주 모터레이스 서킷 (8km, 꼬불꼬불 코너 코스)</option>
+                            </select>
+                            <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                                {trackId === 'jeju' 
+                                    ? "🌴 제주 모터레이스 서킷: 한라산 자락의 구불구불한 테크니컬 코스! 핸들링 스펙에 따른 속도 페널티가 매우 크기 때문에, 코너링 성능(타이어/브레이크 튜닝)이 높은 차가 엄청난 대역전극을 펼칠 수 있습니다." 
+                                    : "🏎️ 몬자 고속 스타디움: 직선 주로 위주의 오발 코스! 최고속도와 스타트 가속 성능이 승패를 지배하는 초고속 드래그 성향의 서킷입니다."}
+                            </p>
+                        </div>
+
+                        {/* Signal Deco */}
+                        <div className="flex gap-2 mb-2">
+                            <span className="w-5 h-5 rounded-full bg-red-600 shadow-[0_0_10px_#ef4444] animate-pulse"></span>
+                            <span className="w-5 h-5 rounded-full bg-yellow-600 opacity-30"></span>
+                            <span className="w-5 h-5 rounded-full bg-green-600 opacity-30"></span>
+                        </div>
+
+                        <div className="w-full flex flex-col gap-2">
+                            <button
+                                onClick={() => handleLaunchBattle(trackId)}
+                                className="w-full py-3.5 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:from-indigo-400 hover:to-pink-400 text-white font-extrabold text-lg rounded-2xl shadow-xl transform transition hover:scale-[1.03] active:scale-95 flex items-center justify-center gap-2 animate-pulse"
+                            >
+                                <span>🚦 START BATTLE</span>
+                            </button>
+                            <button
+                                onClick={handleCloseBattle}
+                                className="w-full py-2.5 bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white font-bold text-sm rounded-2xl border border-slate-700 transition transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                <span>↩️ 대결 나가기</span>
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Racing & Finished State */}
+                {(battleState === 'racing' || battleState === 'finished') && (
+                    <div className="w-full flex flex-col items-center z-10">
+                        {/* 2D Circular SVG Circuit */}
+                        <div className="relative w-48 h-48 sm:w-56 sm:h-56 bg-slate-950/70 border-4 border-slate-800 rounded-full flex items-center justify-center p-2 shadow-inner">
+                            <svg viewBox="0 0 200 200" className="w-full h-full transform -rotate-90">
+                                {/* Outer Ring Road */}
+                                <path
+                                    ref={trackPathRef}
+                                    d={trackId === 'jeju' 
+                                        ? "M 100,25 C 150,25 150,55 100,55 C 50,55 50,85 100,85 C 150,85 150,115 100,115 C 50,115 50,145 100,145 C 150,145 150,175 100,175 C 50,175 50,190 100,190 C 10,190 10,25 100,25 Z" 
+                                        : "M 100,25 A 75,75 0 1,1 99.9,25 Z"}
+                                    fill="none"
+                                    stroke="#1e293b"
+                                    strokeWidth="12"
+                                />
+                                {/* Central Dashed Track Divider */}
+                                <path
+                                    d={trackId === 'jeju' 
+                                        ? "M 100,25 C 150,25 150,55 100,55 C 50,55 50,85 100,85 C 150,85 150,115 100,115 C 50,115 50,145 100,145 C 150,145 150,175 100,175 C 50,175 50,190 100,190 C 10,190 10,25 100,25 Z" 
+                                        : "M 100,25 A 75,75 0 1,1 99.9,25 Z"}
+                                    fill="none"
+                                    stroke="#334155"
+                                    strokeWidth="1"
+                                    strokeDasharray="3 3"
+                                />
+                                {/* Winding Jeju Deco Island */}
+                                {trackId === 'jeju' && (
+                                    <path 
+                                        d="M 85,85 Q 100,75 115,85 Q 125,100 115,115 Q 100,120 85,115 Q 75,100 85,85 Z" 
+                                        fill="#22c55e" 
+                                        opacity="0.12" 
+                                    />
+                                )}
+
+                                {/* Start / Finish Line */}
+                                <line x1="100" y1="18" x2="100" y2="32" stroke="#ef4444" strokeWidth="2.5" />
+
+                                {/* Player Car Node */}
+                                <circle
+                                    cx={pPos.x}
+                                    cy={pPos.y}
+                                    r="6"
+                                    fill="#3b82f6"
+                                    className="animate-pulse"
+                                    style={{ filter: 'drop-shadow(0 0 6px #3b82f6)' }}
+                                />
+
+                                {/* Opponent Car Node */}
+                                <circle
+                                    cx={oPos.x}
+                                    cy={oPos.y}
+                                    r="6"
+                                    fill="#f97316"
+                                    className="animate-pulse"
+                                    style={{ filter: 'drop-shadow(0 0 6px #f97316)' }}
+                                />
+                            </svg>
+
+                            {/* Center Digital LapTime Timer */}
+                            <div className="absolute flex flex-col items-center text-center">
+                                <span className="text-[9px] text-slate-500 font-extrabold tracking-wider">LAPTIME</span>
+                                <span className="text-xl sm:text-2xl font-black text-emerald-400 font-mono tracking-wider drop-shadow-sm">
+                                    {formatLapTime(battleTime)}
+                                </span>
+                                <span className="text-[8px] text-indigo-400 font-bold mt-1">{trackLength / 1000}km CIRCUIT</span>
+                            </div>
+                        </div>
+
+                        {/* HUD Panels for Player & Opponent */}
+                        <div className="w-full mt-5 space-y-3 font-sans">
+                            {/* Player Info */}
+                            <div className="bg-slate-950/50 border border-indigo-500/20 rounded-xl p-2.5 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                    <span className="font-jua text-xs text-indigo-300 font-bold truncate max-w-[90px]">{currentUser}</span>
+                                </div>
+                                <div className="flex gap-4 text-xs font-bold text-slate-300 font-jua">
+                                    <span>🏁 {Math.floor(playerDistance)}m / {trackLength.toLocaleString()}m</span>
+                                    <span className="text-blue-400">⚡ {Math.floor(playerSpeed)}km/h</span>
+                                </div>
+                            </div>
+
+                            {/* Opponent Info */}
+                            <div className="bg-slate-950/50 border border-orange-500/20 rounded-xl p-2.5 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse"></span>
+                                    <span className="font-jua text-xs text-orange-300 font-bold truncate max-w-[90px]">{oppId}</span>
+                                </div>
+                                <div className="flex gap-4 text-xs font-bold text-slate-300 font-jua">
+                                    <span>🏁 {Math.floor(opponentDistance)}m / {trackLength.toLocaleString()}m</span>
+                                    <span className="text-orange-400">⚡ {Math.floor(opponentSpeed)}km/h</span>
+                                </div>
+                            </div>
+                        </div>
+                        {battleState === 'racing' && (
+                            <button
+                                onClick={handleCloseBattle}
+                                className="w-full mt-4 py-2.5 bg-slate-800/60 hover:bg-slate-700/80 border border-slate-800 text-slate-400 hover:text-red-400 font-bold text-xs rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                            >
+                                <span>🏳️ 기권하고 나가기</span>
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {/* Finished Match Result Panel */}
+                {battleState === 'finished' && (
+                    <div className="w-full flex flex-col items-center mt-5 bg-slate-950/80 border border-slate-800 rounded-2xl p-4 text-center animate-fadeIn z-20">
+                        {battleWinner === 'player' ? (
+                            <div className="animate-bounce">
+                                <h3 className="text-3xl text-yellow-400 font-extrabold flex items-center gap-1.5 justify-center">
+                                    🎉 대 승 리 🏆
+                                </h3>
+                                <p className="text-green-400 text-sm mt-1 font-bold font-jua">보상: 튜닝 숍 포인트 +1 획득!</p>
+                            </div>
+                        ) : (
+                            <div>
+                                <h3 className="text-2xl text-red-500 font-extrabold">
+                                    아쉬운 패배 😢
+                                </h3>
+                                <p className="text-slate-400 text-xs mt-1 break-keep leading-relaxed font-semibold">
+                                    상대방 차량의 기록이 더 빠릅니다.<br />부품을 튜닝하거나 신차를 해금하여 재도전하세요!
+                                </p>
+                            </div>
+                        )}
+
+                        {/* LapTime Comparer */}
+                        <div className="mt-4 w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs flex justify-around">
+                            <div>
+                                <div className="text-slate-500 font-bold">나의 기록</div>
+                                <div className="text-blue-400 font-mono font-extrabold text-base mt-0.5">
+                                    {formatLapTime(calcPhysicsTime(calculateSpeed(), calculateAccel(), trackId, calculateHandling()))}
+                                </div>
+                            </div>
+                            <div className="border-l border-slate-800 h-8"></div>
+                            <div>
+                                <div className="text-slate-500 font-bold">상대 기록</div>
+                                <div className="text-orange-400 font-mono font-extrabold text-base mt-0.5">
+                                    {formatLapTime(calcPhysicsTime(
+                                        battleOpponent?.maxSpeed || 200,
+                                        getAccelVal(battleOpponent?.activeCar || 'lv1', battleOpponent?.parts || { engine: 0, mission: 0, tire: 0, brake: 0 }),
+                                        trackId,
+                                        getHandlingVal(battleOpponent?.activeCar || 'lv1', battleOpponent?.parts || { engine: 0, mission: 0, tire: 0, brake: 0 })
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleCloseBattle}
+                            className="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl transition-all active:scale-95 text-sm"
+                        >
+                            경기장 서킷 나가기 🏁
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
         const App = () => {
             const [currentUser, setCurrentUser] = useState(null);
 
@@ -1169,65 +1157,31 @@
                 setShowRankingModal(false);
             };
 
-            // 물리 기반 완주 시간 계산 (초)
-            const calcPhysicsTime = (maxSpeed, accel) => {
-                const v = maxSpeed / 3.6; // m/s
-                const a = accel; // m/s^2
-                const t_acc = v / a;
-                const d_acc = 0.5 * a * t_acc * t_acc;
-                if (d_acc >= 10000) {
-                    return Math.sqrt(20000 / a);
-                } else {
-                    const d_cruise = 10000 - d_acc;
-                    const t_cruise = d_cruise / v;
-                    return t_acc + t_cruise;
-                }
-            };
-
-            // 가상 경과 시간에 따른 실시간 주행거리 계산 (m)
-            const getDistAtTime = (maxSpeed, accel, t) => {
-                const v_max = maxSpeed / 3.6;
-                const a = accel;
-                const t_acc = v_max / a;
-                const d_acc = 0.5 * a * t_acc * t_acc;
-
-                if (t <= t_acc) {
-                    const curDist = 0.5 * a * t * t;
-                    return Math.min(10000, curDist);
-                } else {
-                    const curDist = d_acc + v_max * (t - t_acc);
-                    return Math.min(10000, curDist);
-                }
-            };
-
-            // 가상 경과 시간에 따른 실시간 시속 계산 (km/h)
-            const getSpeedAtTime = (maxSpeed, accel, t) => {
-                const v_max = maxSpeed / 3.6;
-                const a = accel;
-                const t_acc = v_max / a;
-                if (t <= t_acc) {
-                    return Math.min(maxSpeed, (a * t) * 3.6);
-                } else {
-                    return maxSpeed;
-                }
-            };
-
             // 스타디움 배틀 엔진 구동 (10초 타임랩스 가동)
-            const handleLaunchBattle = () => {
+            const handleLaunchBattle = (trackId = 'monza') => {
                 if (battleState !== 'ready') return;
                 setBattleState('racing');
 
+                const isJeju = trackId === 'jeju';
+                const trackLength = isJeju ? 8000 : 10000;
+
                 const pSpeed = calculateSpeed();
                 const pAccel = calculateAccel();
+                const pHandling = calculateHandling();
+
                 const oppSpeed = battleOpponent.maxSpeed || 200;
                 const oppAccel = getAccelVal(
                     battleOpponent.activeCar || 'lv1',
                     battleOpponent.parts || { engine: 0, mission: 0, tire: 0, brake: 0 }
                 );
+                const oppHandling = getHandlingVal(
+                    battleOpponent.activeCar || 'lv1',
+                    battleOpponent.parts || { engine: 0, mission: 0, tire: 0, brake: 0 }
+                );
 
                 // 각 차량 실제 완주 타임
-                const tPlayer = calcPhysicsTime(pSpeed, pAccel);
-                const tOpponent = calcPhysicsTime(oppSpeed, oppAccel);
+                const tPlayer = calcPhysicsTime(pSpeed, pAccel, trackId, pHandling);
+                const tOpponent = calcPhysicsTime(oppSpeed, oppAccel, trackId, oppHandling);
                 const maxRealTime = Math.max(tPlayer, tOpponent);
 
                 // 10초 완주 타겟을 위한 타임랩스 배속율 계산
@@ -1248,16 +1202,16 @@
                     battleSimTime.current += cappedDt * multiplier;
                     const simT = battleSimTime.current;
 
-                    const curPlayerDist = getDistAtTime(pSpeed, pAccel, simT);
-                    const curOpponentDist = getDistAtTime(oppSpeed, oppAccel, simT);
+                    const curPlayerDist = getDistAtTime(pSpeed, pAccel, simT, trackId, pHandling);
+                    const curOpponentDist = getDistAtTime(oppSpeed, oppAccel, simT, trackId, oppHandling);
 
                     setPlayerDistance(curPlayerDist);
                     setOpponentDistance(curOpponentDist);
-                    setPlayerSpeed(getSpeedAtTime(pSpeed, pAccel, simT));
-                    setOpponentSpeed(getSpeedAtTime(oppSpeed, oppAccel, simT));
+                    setPlayerSpeed(getSpeedAtTime(pSpeed, pAccel, simT, trackId, pHandling));
+                    setOpponentSpeed(getSpeedAtTime(oppSpeed, oppAccel, simT, trackId, oppHandling));
                     setBattleTime(simT);
 
-                    if (curPlayerDist >= 10000 || curOpponentDist >= 10000) {
+                    if (curPlayerDist >= trackLength || curOpponentDist >= trackLength) {
                         // 피니시 완료!
                         setBattleState('finished');
                         const isWin = tPlayer < tOpponent;
@@ -2139,445 +2093,42 @@
                     )}
 
                     {/* Ranking Board Modal */}
-                    {showRankingModal && (() => {
-                        const sortedRanking = [...rankingData].sort((a, b) => {
-                            if (rankingTab === 'level') {
-                                const aLvl = a.level || 1;
-                                const bLvl = b.level || 1;
-                                if (bLvl !== aLvl) return bLvl - aLvl;
-
-                                const aExp = a.totalExp || 0;
-                                const bExp = b.totalExp || 0;
-                                if (bExp !== aExp) return bExp - aExp;
-
-                                return (a.id || '').localeCompare(b.id || '');
-                            } else { // 'speed'
-                                const aSpeed = a.maxSpeed || 200;
-                                const bSpeed = b.maxSpeed || 200;
-                                if (bSpeed !== aSpeed) return bSpeed - aSpeed;
-
-                                const aLvl = a.level || 1;
-                                const bLvl = b.level || 1;
-                                if (bLvl !== aLvl) return bLvl - aLvl;
-
-                                return (a.id || '').localeCompare(b.id || '');
-                            }
-                        });
-
-                        return (
-                            <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn font-jua">
-                                <div className="bg-slate-950/90 border border-yellow-400/50 shadow-[0_0_30px_rgba(250,204,21,0.25)] rounded-3xl p-6 sm:p-8 max-w-lg w-full backdrop-blur-md relative z-50 flex flex-col max-h-[90vh] text-white">
-                                    {/* Header */}
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h2 className="text-2xl font-bold text-yellow-400 flex items-center gap-2">
-                                            🏆 명예의 전당 (실시간 랭킹)
-                                        </h2>
-                                        <button
-                                            onClick={() => setShowRankingModal(false)}
-                                            className="text-slate-400 hover:text-white text-xl font-bold p-1 bg-slate-900 rounded-lg w-8 h-8 flex items-center justify-center transition-colors"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-
-                                    {/* Tabs */}
-                                    <div className="flex gap-2 mb-4 bg-slate-900 p-1 rounded-xl border border-slate-800">
-                                        <button
-                                            onClick={() => setRankingTab('level')}
-                                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1 ${rankingTab === 'level'
-                                                    ? 'bg-yellow-400 text-yellow-950 font-extrabold shadow-md'
-                                                    : 'text-slate-400 hover:text-white'
-                                                }`}
-                                        >
-                                            ⭐ 레벨 순
-                                        </button>
-                                        <button
-                                            onClick={() => setRankingTab('speed')}
-                                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1 ${rankingTab === 'speed'
-                                                    ? 'bg-yellow-400 text-yellow-950 font-extrabold shadow-md'
-                                                    : 'text-slate-400 hover:text-white'
-                                                }`}
-                                        >
-                                            🔥 최고속도 순
-                                        </button>
-                                    </div>
-
-                                    {/* Loading State */}
-                                    {rankingLoading ? (
-                                        <div className="flex-1 flex flex-col items-center justify-center py-12 gap-3">
-                                            <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
-                                            <p className="text-slate-400 text-sm animate-pulse">실시간 순위 분석 중...</p>
-                                        </div>
-                                    ) : sortedRanking.length === 0 ? (
-                                        <div className="flex-1 flex items-center justify-center py-12 text-slate-500">
-                                            등록된 플레이어가 없습니다.
-                                        </div>
-                                    ) : (
-                                        /* Rankings List */
-                                        <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 max-h-[55vh] custom-scrollbar">
-                                            {sortedRanking.map((item, index) => {
-                                                const isSelf = item.id === currentUser;
-                                                const rankNum = index + 1;
-
-                                                // 1, 2, 3위 메달 및 로우 그라데이션
-                                                let rowStyle = "bg-slate-900/60 border border-slate-800 hover:border-slate-700";
-                                                let badge = null;
-                                                let rankText = <span className="text-slate-400 font-bold text-sm w-6 text-center">{rankNum}</span>;
-
-                                                if (rankNum === 1) {
-                                                    rowStyle = "bg-gradient-to-r from-yellow-500/25 to-amber-500/10 border border-yellow-400/50";
-                                                    badge = "🥇";
-                                                    rankText = <span className="text-2xl w-6 text-center">{badge}</span>;
-                                                } else if (rankNum === 2) {
-                                                    rowStyle = "bg-gradient-to-r from-slate-300/20 to-slate-400/5 border border-slate-300/40";
-                                                    badge = "🥈";
-                                                    rankText = <span className="text-2xl w-6 text-center">{badge}</span>;
-                                                } else if (rankNum === 3) {
-                                                    rowStyle = "bg-gradient-to-r from-amber-600/20 to-amber-700/5 border border-amber-600/40";
-                                                    badge = "🥉";
-                                                    rankText = <span className="text-2xl w-6 text-center">{badge}</span>;
-                                                }
-
-                                                // 본인 계정 테두리 강조
-                                                if (isSelf) {
-                                                    rowStyle = `bg-indigo-950/40 border-2 border-indigo-400 shadow-[0_0_12px_rgba(129,140,248,0.25)]`;
-                                                }
-
-                                                const carName = item.activeCarName || CAR_DATA[item.activeCar || 'lv1']?.name || '연습 차량';
-
-                                                return (
-                                                    <div
-                                                        key={item.id}
-                                                        className={`flex items-center justify-between p-3.5 rounded-2xl transition-all ${rowStyle}`}
-                                                    >
-                                                        <div className="flex items-center gap-3 min-w-0">
-                                                            {/* 본인일 경우 좌측 지시 화살표 */}
-                                                            {isSelf && (
-                                                                <span className="text-indigo-400 text-sm animate-pulse">▶</span>
-                                                            )}
-                                                            {rankText}
-                                                            <div className="flex flex-col min-w-0">
-                                                                <div className="flex items-center gap-1.5">
-                                                                    <span className={`font-bold text-sm truncate ${isSelf ? 'text-indigo-300' : 'text-slate-200'}`}>
-                                                                        {item.id}
-                                                                    </span>
-                                                                    {isSelf && (
-                                                                        <span className="bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-[9px] px-1.5 py-0.5 rounded-md font-extrabold">
-                                                                            YOU
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                <span className="text-[10px] text-slate-400 font-medium truncate mt-0.5">
-                                                                    🚗 {carName}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* 스펙 정보 */}
-                                                        <div className="flex items-center gap-4 text-right shrink-0">
-                                                            <div className="flex flex-col">
-                                                                <span className="text-yellow-400 font-bold text-sm">
-                                                                    Lv.{item.level || 1}
-                                                                </span>
-                                                                <span className="text-[9px] text-slate-500 font-bold">
-                                                                    {item.totalExp || 0} EXP
-                                                                </span>
-                                                            </div>
-                                                            <div className="border-l border-slate-800 h-6"></div>
-                                                            <div className="flex flex-col min-w-[70px]">
-                                                                <span className="text-red-400 font-extrabold text-sm">
-                                                                    ⚡ {item.maxSpeed || 200}
-                                                                </span>
-                                                                <span className="text-[8px] text-red-500/70 font-extrabold">
-                                                                    km/h
-                                                                </span>
-                                                            </div>
-
-                                                            {/* 일일 대결하기 버튼: 본인 제외 */}
-                                                            {!isSelf && (() => {
-                                                                const todayStr = new Date().toISOString().split('T')[0];
-                                                                const isCompleted = !!(lastMatchMap && lastMatchMap[item.id] === todayStr);
-                                                                return (
-                                                                    <button
-                                                                        onClick={() => handleStartBattle(item)}
-                                                                        disabled={isCompleted}
-                                                                        className={`ml-1.5 px-2.5 py-1.5 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center gap-0.5 ${isCompleted
-                                                                                ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed text-[10px]'
-                                                                                : 'bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-extrabold shadow-md transform hover:scale-105'
-                                                                            }`}
-                                                                    >
-                                                                        {isCompleted ? (
-                                                                            <>
-                                                                                <span>🔒 완료</span>
-                                                                            </>
-                                                                        ) : (
-                                                                            <>
-                                                                                <span>⚔️ 대결</span>
-                                                                            </>
-                                                                        )}
-                                                                    </button>
-                                                                );
-                                                            })()}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-
-                                    {/* Footer */}
-                                    <div className="mt-5 pt-3 border-t border-slate-900 flex justify-between items-center text-[10px] text-slate-500 font-semibold pl-1">
-                                        <span>🏁 실시간 데이터 동기화 완료</span>
-                                        <button
-                                            onClick={() => setShowRankingModal(false)}
-                                            className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-bold py-2 px-6 rounded-xl transition-all active:scale-95 text-xs"
-                                        >
-                                            닫기
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })()}
+                    <RankingModal
+                        show={showRankingModal}
+                        onClose={() => setShowRankingModal(false)}
+                        rankingData={rankingData}
+                        rankingTab={rankingTab}
+                        setRankingTab={setRankingTab}
+                        rankingLoading={rankingLoading}
+                        currentUser={currentUser}
+                        lastMatchMap={lastMatchMap}
+                        CAR_DATA={CAR_DATA}
+                        handleStartBattle={handleStartBattle}
+                    />
 
                     {/* Circuit Battle Stadium Modal */}
-                    {showBattleModal && (() => {
-                        const oppId = battleOpponent?.id || '상대 드라이버';
-                        const oppCarName = battleOpponent?.activeCarName || CAR_DATA[battleOpponent?.activeCar || 'lv1']?.name || '연습 차량';
-
-                        // 삼각함수 연산을 통한 SVG 원형 좌표 계산
-                        const getCoords = (distance) => {
-                            const ratio = distance / 10000;
-                            const angle = ratio * 2 * Math.PI - Math.PI / 2; // 12시 방향 오프셋
-                            const radius = 75; // 원 반경
-                            const cx = 100;
-                            const cy = 100;
-                            return {
-                                x: cx + radius * Math.cos(angle),
-                                y: cy + radius * Math.sin(angle)
-                            };
-                        };
-
-                        const pPos = getCoords(playerDistance);
-                        const oPos = getCoords(opponentDistance);
-
-                        // 시간 포맷 헬퍼
-                        const formatLapTime = (sec) => {
-                            const m = Math.floor(sec / 60).toString().padStart(2, '0');
-                            const s = Math.floor(sec % 60).toString().padStart(2, '0');
-                            const ms = Math.floor((sec % 1) * 100).toString().padStart(2, '0');
-                            return `${m}:${s}.${ms}`;
-                        };
-
-                        return (
-                            <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn font-jua">
-                                <div className="bg-slate-900 border-2 border-indigo-500/60 shadow-[0_0_40px_rgba(99,102,241,0.3)] rounded-3xl p-6 sm:p-8 max-w-xl w-full flex flex-col items-center relative overflow-hidden text-white animate-fadeIn">
-                                    {/* Neon Grid Effect */}
-                                    <div className="absolute inset-0 opacity-5 pointer-events-none"
-                                        style={{ backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '15px 15px' }}></div>
-
-                                    {/* Close Button */}
-                                    <button
-                                        onClick={handleCloseBattle}
-                                        className="absolute top-4 right-4 text-slate-400 hover:text-white hover:scale-110 active:scale-95 transition-all duration-200 z-30"
-                                        title="나가기"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-
-                                    {/* Header */}
-                                    <h2 className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 mb-2 tracking-wide drop-shadow-sm flex items-center gap-1.5 z-10">
-                                        🏟️ 서킷 배틀 스타디움
-                                    </h2>
-                                    <p className="text-slate-400 text-xs sm:text-sm mb-5 z-10 text-center font-medium">
-                                        10km 원형 서킷을 정복할 최강의 드라이버를 가립니다!
-                                    </p>
-
-                                    {/* Ready State */}
-                                    {battleState === 'ready' && (
-                                        <div className="w-full flex flex-col items-center gap-5 z-10">
-                                            <div className="grid grid-cols-2 gap-4 w-full">
-                                                {/* Player Spec Card */}
-                                                <div className="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 text-center">
-                                                    <span className="bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold">DRIVER</span>
-                                                    <h3 className="text-lg font-bold text-indigo-300 mt-2 truncate">{currentUser}</h3>
-                                                    <div className="mt-3 text-xs space-y-1 text-slate-300 text-left pl-3">
-                                                        <div>⚡ 최고속도: <span className="text-yellow-400 font-extrabold">{calculateSpeed()}km/h</span></div>
-                                                        <div>🔥 가속도: <span className="text-yellow-400 font-extrabold">{calculateAccel()}/10</span></div>
-                                                    </div>
-                                                </div>
-                                                {/* Opponent Spec Card */}
-                                                <div className="bg-orange-950/40 border border-orange-500/30 rounded-2xl p-4 text-center">
-                                                    <span className="bg-orange-500/20 border border-orange-500/40 text-orange-300 text-[10px] px-2 py-0.5 rounded-full font-bold">CHALLENGER</span>
-                                                    <h3 className="text-lg font-bold text-orange-300 mt-2 truncate">{oppId}</h3>
-                                                    <div className="mt-3 text-xs space-y-1 text-slate-300 text-left pl-3">
-                                                        <div>⚡ 최고속도: <span className="text-yellow-400 font-extrabold">{battleOpponent?.maxSpeed || 200}km/h</span></div>
-                                                        <div>🔥 가속도: <span className="text-yellow-400 font-extrabold">{getAccelVal(battleOpponent?.activeCar || 'lv1', battleOpponent?.parts || { engine: 0, mission: 0, tire: 0, brake: 0 })}/10</span></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Signal Deco */}
-                                            <div className="flex gap-2 mb-2">
-                                                <span className="w-5 h-5 rounded-full bg-red-600 shadow-[0_0_10px_#ef4444] animate-pulse"></span>
-                                                <span className="w-5 h-5 rounded-full bg-yellow-600 opacity-30"></span>
-                                                <span className="w-5 h-5 rounded-full bg-green-600 opacity-30"></span>
-                                            </div>
-
-                                            <div className="w-full flex flex-col gap-2">
-                                                <button
-                                                    onClick={handleLaunchBattle}
-                                                    className="w-full py-3.5 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:from-indigo-400 hover:to-pink-400 text-white font-extrabold text-lg rounded-2xl shadow-xl transform transition hover:scale-[1.03] active:scale-95 flex items-center justify-center gap-2 animate-pulse"
-                                                >
-                                                    <span>🚦 START BATTLE</span>
-                                                </button>
-                                                <button
-                                                    onClick={handleCloseBattle}
-                                                    className="w-full py-2.5 bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white font-bold text-sm rounded-2xl border border-slate-700 transition transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
-                                                >
-                                                    <span>↩️ 대결 나가기</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Racing & Finished State */}
-                                    {(battleState === 'racing' || battleState === 'finished') && (
-                                        <div className="w-full flex flex-col items-center z-10">
-                                            {/* 2D Circular SVG Circuit */}
-                                            <div className="relative w-48 h-48 sm:w-56 sm:h-56 bg-slate-950/70 border-4 border-slate-800 rounded-full flex items-center justify-center p-2 shadow-inner">
-                                                <svg viewBox="0 0 200 200" className="w-full h-full transform -rotate-90">
-                                                    {/* Outer Ring Road */}
-                                                    <circle cx="100" cy="100" r="75" fill="none" stroke="#1e293b" strokeWidth="12" />
-                                                    {/* Central Dashed Track Divider */}
-                                                    <circle cx="100" cy="100" r="75" fill="none" stroke="#334155" strokeWidth="1" strokeDasharray="3 3" />
-
-                                                    {/* Start / Finish Line */}
-                                                    <line x1="100" y1="18" x2="100" y2="32" stroke="#ef4444" strokeWidth="2.5" />
-
-                                                    {/* Player Car Node */}
-                                                    <circle
-                                                        cx={pPos.x}
-                                                        cy={pPos.y}
-                                                        r="6"
-                                                        fill="#3b82f6"
-                                                        className="animate-pulse"
-                                                        style={{ filter: 'drop-shadow(0 0 6px #3b82f6)' }}
-                                                    />
-
-                                                    {/* Opponent Car Node */}
-                                                    <circle
-                                                        cx={oPos.x}
-                                                        cy={oPos.y}
-                                                        r="6"
-                                                        fill="#f97316"
-                                                        className="animate-pulse"
-                                                        style={{ filter: 'drop-shadow(0 0 6px #f97316)' }}
-                                                    />
-                                                </svg>
-
-                                                {/* Center Digital LapTime Timer */}
-                                                <div className="absolute flex flex-col items-center text-center">
-                                                    <span className="text-[9px] text-slate-500 font-extrabold tracking-wider">LAPTIME</span>
-                                                    <span className="text-xl sm:text-2xl font-black text-emerald-400 font-mono tracking-wider drop-shadow-sm">
-                                                        {formatLapTime(battleTime)}
-                                                    </span>
-                                                    <span className="text-[8px] text-indigo-400 font-bold mt-1">10km CIRCUIT</span>
-                                                </div>
-                                            </div>
-
-                                            {/* HUD Panels for Player & Opponent */}
-                                            <div className="w-full mt-5 space-y-3 font-sans">
-                                                {/* Player Info */}
-                                                <div className="bg-slate-950/50 border border-indigo-500/20 rounded-xl p-2.5 flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
-                                                        <span className="font-jua text-xs text-indigo-300 font-bold truncate max-w-[90px]">{currentUser}</span>
-                                                    </div>
-                                                    <div className="flex gap-4 text-xs font-bold text-slate-300 font-jua">
-                                                        <span>🏁 {Math.floor(playerDistance)}m / 10,000m</span>
-                                                        <span className="text-blue-400">⚡ {Math.floor(playerSpeed)}km/h</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Opponent Info */}
-                                                <div className="bg-slate-950/50 border border-orange-500/20 rounded-xl p-2.5 flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse"></span>
-                                                        <span className="font-jua text-xs text-orange-300 font-bold truncate max-w-[90px]">{oppId}</span>
-                                                    </div>
-                                                    <div className="flex gap-4 text-xs font-bold text-slate-300 font-jua">
-                                                        <span>🏁 {Math.floor(opponentDistance)}m / 10,000m</span>
-                                                        <span className="text-orange-400">⚡ {Math.floor(opponentSpeed)}km/h</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {battleState === 'racing' && (
-                                                <button
-                                                    onClick={handleCloseBattle}
-                                                    className="w-full mt-4 py-2.5 bg-slate-800/60 hover:bg-slate-700/80 border border-slate-800 text-slate-400 hover:text-red-400 font-bold text-xs rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
-                                                >
-                                                    <span>🏳️ 기권하고 나가기</span>
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Finished Match Result Panel */}
-                                    {battleState === 'finished' && (
-                                        <div className="w-full flex flex-col items-center mt-5 bg-slate-950/80 border border-slate-800 rounded-2xl p-4 text-center animate-fadeIn z-20">
-                                            {battleWinner === 'player' ? (
-                                                <div className="animate-bounce">
-                                                    <h3 className="text-3xl text-yellow-400 font-extrabold flex items-center gap-1.5 justify-center">
-                                                        🎉 대 승 리 🏆
-                                                    </h3>
-                                                    <p className="text-green-400 text-sm mt-1 font-bold font-jua">보상: 튜닝 숍 포인트 +1 획득!</p>
-                                                </div>
-                                            ) : (
-                                                <div>
-                                                    <h3 className="text-2xl text-red-500 font-extrabold">
-                                                        아쉬운 패배 😢
-                                                    </h3>
-                                                    <p className="text-slate-400 text-xs mt-1 break-keep leading-relaxed font-semibold">
-                                                        상대방 차량의 기록이 더 빠릅니다.<br />부품을 튜닝하거나 신차를 해금하여 재도전하세요!
-                                                    </p>
-                                                </div>
-                                            )}
-
-                                            {/* LapTime Comparer */}
-                                            <div className="mt-4 w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs flex justify-around">
-                                                <div>
-                                                    <div className="text-slate-500 font-bold">나의 기록</div>
-                                                    <div className="text-blue-400 font-mono font-extrabold text-base mt-0.5">
-                                                        {formatLapTime(calcPhysicsTime(calculateSpeed(), calculateAccel()))}
-                                                    </div>
-                                                </div>
-                                                <div className="border-l border-slate-800 h-8"></div>
-                                                <div>
-                                                    <div className="text-slate-500 font-bold">상대 기록</div>
-                                                    <div className="text-orange-400 font-mono font-extrabold text-base mt-0.5">
-                                                        {formatLapTime(calcPhysicsTime(
-                                                            battleOpponent?.maxSpeed || 200,
-                                                            getAccelVal(battleOpponent?.activeCar || 'lv1', battleOpponent?.parts || { engine: 0, mission: 0, tire: 0, brake: 0 })
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <button
-                                                onClick={handleCloseBattle}
-                                                className="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl transition-all active:scale-95 text-sm"
-                                            >
-                                                경기장 서킷 나가기 🏁
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })()}
+                    <BattleModal
+                        show={showBattleModal}
+                        battleOpponent={battleOpponent}
+                        CAR_DATA={CAR_DATA}
+                        playerDistance={playerDistance}
+                        opponentDistance={opponentDistance}
+                        battleTime={battleTime}
+                        currentUser={currentUser}
+                        calculateSpeed={calculateSpeed}
+                        calculateAccel={calculateAccel}
+                        getAccelVal={getAccelVal}
+                        battleState={battleState}
+                        handleLaunchBattle={handleLaunchBattle}
+                        handleCloseBattle={handleCloseBattle}
+                        playerSpeed={playerSpeed}
+                        opponentSpeed={opponentSpeed}
+                        battleWinner={battleWinner}
+                        calcPhysicsTime={calcPhysicsTime}
+                        parts={parts}
+                        activeCar={activeCar}
+                        calculateHandling={calculateHandling}
+                    />
                 </div>
             );
         };
